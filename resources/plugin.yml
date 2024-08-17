@@ -1,0 +1,47 @@
+name: AdvancedManhunt
+main: org.greenem.plugins.manhunt.main.Main
+version: 1.6.0
+api-version: 1.18
+commands:
+   mhteam:
+      description: Join or leave a manhunt team
+      default: true
+   mhteam_tools:
+      description: Manhunt team creation, configuration and etc.
+      default: true
+   mhgame:
+      description: Start/stop the game or manage it in some way
+      default: true
+   mhhunter:
+      description: Turning the player role to the hunter
+      default: true
+   mhspeedrunner:
+      description: Turning the player role to the speedrunner
+      default: true
+   mhnorole:
+      description: No role (not a speedrunner or a hunter)
+      default: true
+   mhstart:
+      description: Start Manhunt
+      default: true
+   mhissues:
+      description: Special commands
+      default: true
+   gm:
+      description: Fast gamemode
+      permission: op
+   heal:
+      description: Healing
+      permission: op
+   mhreloadconfig:
+      description: Reload the plugin config
+      permission: op
+   resetworld:
+      description: DELETES THE WORLD AND RESTARTS THE SERVER, may be moved to a separate plugin later
+      permission: op
+   mhw-about:
+      description: Display info about the plugin and it's authors
+      permission: op
+   test:
+      description: Test
+      permission: op
