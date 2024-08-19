@@ -1,7 +1,7 @@
 name: AdvancedManhunt
 main: org.greenem.plugins.manhunt.main.Main
 version: 1.6.0
-api-version: 1.18
+api-version: 1.16
 commands:
    mhteam:
       description: Join or leave a manhunt team

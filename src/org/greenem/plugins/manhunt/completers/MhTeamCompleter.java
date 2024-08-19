@@ -116,7 +116,7 @@ public class MhTeamCompleter implements TabCompleter {
 				return arguments;
 			}
 			
-			if((targetName != null || check(selfOrSomeone, "self") || check(typeOfSomeone, "remaining") || check(typeOfSomeone, "everyone")) && (actionType == null || actionType.isBlank())) {
+			if((targetName != null || check(selfOrSomeone, "self") || check(typeOfSomeone, "remaining") || check(typeOfSomeone, "everyone")) && (actionType == null || actionType.trim().isEmpty())) {
 				arguments.add("join");
 				arguments.add("leave");
 				return arguments;

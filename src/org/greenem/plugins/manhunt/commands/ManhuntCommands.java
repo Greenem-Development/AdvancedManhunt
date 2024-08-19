@@ -361,7 +361,7 @@ public class ManhuntCommands {
 	public static void mhTeamCommand(CommandSender sender, String[] args) {
 		MhTeamArgs specificArgs = new MhTeamCompleter.MhTeamArgs(args);
 //		log(args.length + " | 1:" + specificArgs.selfOrSomeone + " 2:" + specificArgs.typeOfSomeone + " 3:" + specificArgs.targetName + " 4:" + specificArgs.actionType + " 5:" + specificArgs.teamName);
-		boolean valid = specificArgs.actionType != null && ((specificArgs.actionType.equals("join") && (specificArgs.teamName != null || specificArgs.teamName.isBlank())) || specificArgs.actionType.equals("leave")) && (check(specificArgs.selfOrSomeone, "self") || (check(specificArgs.selfOrSomeone, "someone") && specificArgs.typeOfSomeone != null));
+		boolean valid = specificArgs.actionType != null && ((specificArgs.actionType.equals("join") && (specificArgs.teamName != null || specificArgs.teamName.trim().isEmpty())) || specificArgs.actionType.equals("leave")) && (check(specificArgs.selfOrSomeone, "self") || (check(specificArgs.selfOrSomeone, "someone") && specificArgs.typeOfSomeone != null));
 		if(!valid) {
 			sender.sendMessage("Incorrect command usage!");
 			return;
