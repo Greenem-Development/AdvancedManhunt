@@ -15,6 +15,7 @@ public class CompleterUtils {
 	private static String textPatternLastBrackededWord = "(?:[^\"])*(\"[^\"]*\"?)$"; // "(?:[^\"])*(\"[^\"]*\"?)$"
 	private static String textPatternLastBrackededWordForReplaceRemoval = "(\"[^\"]*\"?)$";
 	private static Pattern lastBrackededWord = Pattern.compile(textPatternLastBrackededWord);
+	private static Pattern everythingBeforeLastWord = Pattern.compile("(.*\\s+)\\S*\\s*$");
 	
 	public static String extractAfterQuotes(String input) {
         if (input == null || input.isEmpty()) {
@@ -55,17 +56,8 @@ public class CompleterUtils {
     	else return !str.endsWith(" ");
     }
 
-//    public static String removeWordAtTheEnd(String str) {
-//    	Matcher matcher = lastBrackededWord.matcher(extractAfterQuotes(str));
-//    	if(matcher.matches()) {
-////    		debug("removing BRACKEDED");
-//    		return str.replaceAll(textPatternLastBrackededWordForReplaceRemoval, "").trim();
-//    	}
-//    	else return str.replaceAll("\\s*" + wordsPossiblyInPrackets + "$", "");
-//    }
-    
     public static String getWordAtTheEnd(String str) {
-    	str = str.trim();
+//    	str = str.trim();
     	Matcher matcher1 = lastBrackededWord.matcher(extractAfterQuotes(str));
     	if(matcher1.matches()) {
 //    		debug("getting BRACKEDED");
@@ -78,19 +70,21 @@ public class CompleterUtils {
     
     public static List<String> applyFilteredSuggestions(List<String> possibleOptions, String userInput) {
 		List<String> choices = new ArrayList<>();
+		final String inputFinalCopy = userInput;
 		
 		for(int i = 0; i < possibleOptions.size(); i++) {
 			String text = possibleOptions.get(i);
-			debug("|FilteredSuggestions, length " + text.trim().split("\\s").length + ": " + text);
+//			debug("|FilteredSuggestions, length " + text.trim().split("\\s").length + ": " + text);
 			if(text.trim().split("\\s").length > 1) {
 				possibleOptions.set(i, "\"" + text + "\"");
 			}
 		}
 		
-		debug("||User input: " + userInput);
+//		debug("||User input: " + userInput);
 		
-		if(userInput != null && userInput.trim().split("\\s").length > 1) {
-			userInput = "\"" + userInput + "\"";
+		if(userInput != null && userInput.split("\\s").length > 1) {
+			if(!userInput.startsWith("")) userInput = "\"" + userInput;
+			// same check to the right, but that side is not needed right now
 		}
 		
 		for (String option : possibleOptions) {
@@ -106,10 +100,36 @@ public class CompleterUtils {
 			for (String option : possibleOptions) {
 	//			option = option.replace("-", "_").replace(" ", "_");
 			    if (option.toLowerCase().contains(userInput.toLowerCase()) && !option.toLowerCase().startsWith(userInput.toLowerCase())) {
-	//		    	debug(option + " contains " + userInput + ", but " + option + " doesn't start with " + userInput);
+//			    	debug(option + " contains " + userInput + ", but " + option + " doesn't start with " + userInput);
 			        choices.add(option);
 			    }
 			}
+		}
+		
+		// this is pointless, but I'll leave it here for now
+//		if(userInput != null) {
+//			final String[] inputWords = userInput.trim().split("\\s");
+//			final int inputLength = inputWords.length;
+//			final String firstInputWord = null;
+//			
+//			if(inputLength > 1 && inputWords.length > 0) {
+//				debug("Before: " + choices.size());
+//				choices.removeIf(choise -> !choise.startsWith(formatAddNameQuotes(firstInputWord)));
+//				debug("After: " + choices.size());
+//			}
+//		}
+		
+		Matcher matcher = null;
+		if(userInput != null) {
+			matcher = everythingBeforeLastWord.matcher(userInput);
+			if(matcher.matches()) {
+				int substrFor = matcher.group(1).length();
+//				debug("substrFor: " + substrFor + ", choices.size(): " + choices.size());
+				for(int i = 0; i < choices.size(); i++) {
+					String text = choices.get(i);
+					choices.set(i, text.substring(substrFor));
+				}
+			} // else debug("not matches");
 		}
 		
 //		for(int i = 0; i < choices.size(); i++) {

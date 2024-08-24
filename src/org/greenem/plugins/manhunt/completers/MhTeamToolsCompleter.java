@@ -351,7 +351,7 @@ public class MhTeamToolsCompleter implements TabCompleter {
 //			String tryWith = CompleterUtils.removeWordAtTheEnd(s).trim() + " ";
 			String userInput = CompleterUtils.getWordAtTheEnd(s);
 			String tryWith = s.substring(0, s.length() - userInput.length()).trim() + " ";
-			debug("Checking for: " + tryWith);
+//			debug("Checking for: " + tryWith);
 			List<String> options = processMhToolsArgs(sender, tryWith, true);
 			if(options == null) return null;
 			
