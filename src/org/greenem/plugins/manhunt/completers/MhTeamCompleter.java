@@ -123,10 +123,7 @@ public class MhTeamCompleter implements TabCompleter {
 			}
 			
 			if(actionType != null && !(check(actionType, "leave"))) {
-				for(Map.Entry<String, ManhuntTeam> team : TeamsManager.getAllTeams().entrySet()) {
-					arguments.add(team.getKey());
-				}
-				return arguments;
+				return TeamsManager.getAllTeamsNames();
 			}
 		}
 		return arguments;

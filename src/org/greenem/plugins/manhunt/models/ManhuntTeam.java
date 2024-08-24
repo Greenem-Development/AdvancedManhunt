@@ -1,12 +1,18 @@
 package org.greenem.plugins.manhunt.models;
 
+import static org.greenem.plugins.manhunt.util.SimpleLogger.log;
+import static org.greenem.plugins.manhunt.util.SimpleLogger.debug;
+
 import java.util.ArrayList;
 import java.util.List;
 
 import org.bukkit.Bukkit;
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 
 public class ManhuntTeam {
+	private String name;
+	private ChatColor color;
 	private List<ManhuntPlayer> players = new ArrayList<>();
 	private boolean canUseTracking = true;
 	private boolean canBeTracked = true;
@@ -14,15 +20,17 @@ public class ManhuntTeam {
 	private List<ManhuntTeam> beingTrackedByTeams = new ArrayList<>(); // can later be implemented with a trackableAndTracking interface lists
 	private List<ManhuntTeam> trackingTeams = new ArrayList<>();
 	
-	public ManhuntTeam(boolean canUseTracking, boolean canBeTracked) {
+	public ManhuntTeam(String name) {
 		super();
-		this.canUseTracking = canUseTracking;
-		this.canBeTracked = canBeTracked;
+		this.name = name;
+//		this.canUseTracking = canUseTracking;
+//		this.canBeTracked = canBeTracked;
 	}
 	
 	public void addPlayer(ManhuntPlayer p) {
 		players.add(p);
 		p.setOwnTeam(this);
+		debug("Added: " + getPlayer(p.getNickname()) != null);
 	}
 	
 	public void removePlayer(ManhuntPlayer p) {
@@ -47,6 +55,7 @@ public class ManhuntTeam {
 
 	public ManhuntPlayer getPlayer(String nickname) {
 		for(ManhuntPlayer p : players) {
+			debug(p.getNickname() + " " + nickname);
 			if(p.getNickname().equals(nickname)) return p;
 		}
 		return null;
@@ -56,16 +65,18 @@ public class ManhuntTeam {
 		return canUseTracking;
 	}
 
-	public void setCanUseTracking(boolean canUseTracking) {
+	public ManhuntTeam setCanUseTracking(boolean canUseTracking) {
 		this.canUseTracking = canUseTracking;
+		return this;
 	}
 
 	public boolean canBeTracked() {
 		return canBeTracked;
 	}
 
-	public void setCanBeTracked(boolean canBeTracked) {
+	public ManhuntTeam setCanBeTracked(boolean canBeTracked) {
 		this.canBeTracked = canBeTracked;
+		return this;
 	}
 	
 	public void sendMessage(String message) {
@@ -83,19 +94,19 @@ public class ManhuntTeam {
 	
 	public void addTeamToTrack(ManhuntTeam team) {
 		trackingTeams.add(team);
-		team.addBeingTrackedByTeam(this);
+		team.internalAddBeingTrackedByTeam(this);
 	}
 	
 	public void stopTrackingTeam(ManhuntTeam team) {
 		trackingTeams.remove(team);
-		team.stopBeingTrackedByTeam(this);
+		team.internalStopBeingTrackedByTeam(this);
 	}
 	
-	public void addBeingTrackedByTeam(ManhuntTeam team) {
+	public void internalAddBeingTrackedByTeam(ManhuntTeam team) {
 		beingTrackedByTeams.add(team);
 	}
 	
-	public void stopBeingTrackedByTeam(ManhuntTeam team) {
+	public void internalStopBeingTrackedByTeam(ManhuntTeam team) {
 		beingTrackedByTeams.remove(team);
 	}
 
@@ -109,5 +120,13 @@ public class ManhuntTeam {
 
 	public List<ManhuntPlayer> getPlayers() {
 		return players;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public ChatColor getColor() {
+		return color;
 	}
 }

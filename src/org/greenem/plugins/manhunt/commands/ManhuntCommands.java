@@ -36,6 +36,7 @@ import org.greenem.plugins.manhunt.compass.CompassUtils;
 import org.greenem.plugins.manhunt.compass.TeamsManager;
 import org.greenem.plugins.manhunt.completers.MhTeamCompleter;
 import org.greenem.plugins.manhunt.completers.MhTeamCompleter.MhTeamArgs;
+import org.greenem.plugins.manhunt.completers.MhTeamToolsCompleter;
 import org.greenem.plugins.manhunt.config.ConfigData;
 import org.greenem.plugins.manhunt.config.ConfigOperations;
 import org.greenem.plugins.manhunt.models.ManhuntPlayer;
@@ -413,7 +414,7 @@ public class ManhuntCommands {
 	}
 	
 	public static void mhTeamToolsCommand(CommandSender sender, String[] args) {
-		
+		MhTeamToolsCompleter.processMhToolsArgs(sender, String.join(" ", args), false);
 	}
 	
 	public static void mhGameCommand(CommandSender sender, String[] args) {

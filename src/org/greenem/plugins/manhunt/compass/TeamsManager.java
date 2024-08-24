@@ -12,62 +12,67 @@ import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.greenem.plugins.manhunt.completers.MhTeamCompleter;
+import org.greenem.plugins.manhunt.completers.util.CompleterUtils;
 import org.greenem.plugins.manhunt.models.ManhuntPlayer;
 import org.greenem.plugins.manhunt.models.ManhuntTeam;
 import org.greenem.plugins.manhunt.util.FormattedMessages;
 
 public class TeamsManager {
-	private static Map<String, ManhuntTeam> teams = new HashMap<>();
+	private static List<ManhuntTeam> teams = new ArrayList<>();
 	
-	public static Map<String, ManhuntTeam> getAllTeams() {
+	public static List<ManhuntTeam> getAllTeams() {
 		return teams;
 	}
 	
-	public static void addTeam(String name, ManhuntTeam team) {
-		if(teams.containsKey(name)) throw new IllegalArgumentException("Such team already exists");
-		teams.put(name, team);
+	public static List<String> getAllTeamsNames() {
+		List<String> results = new ArrayList<>();
+		for(ManhuntTeam team : getAllTeams()) {
+			results.add(team.getName());
+		}
+		return results;
+	}
+	
+	public static void createTeam(ManhuntTeam team) {
+		if(teamExists(team.getName())) throw new IllegalArgumentException("Such team already exists");
+		teams.add(team);
 	}
 	
 	public static void deleteTeam(String name) {
-		if(!teams.containsKey(name)) throw new IllegalArgumentException("Such team doesn't exist");
-		teams.remove(name);
+//		if(!teamExists(name)) throw new IllegalArgumentException("Such team doesn't exist");
+		deleteTeam(getTeamByName(name));
 	}
 	
 	public static void deleteTeam(ManhuntTeam team) {
-		if(!teams.containsValue(team)) throw new IllegalArgumentException("Such team doesn't exist");
-		for(Map.Entry<String, ManhuntTeam> t : teams.entrySet()) {
-			if(t.getValue() == team) {
-				teams.remove(t.getKey());
-				return;
-			}
-		}
+//		if(!teams.contains(team)) throw new IllegalArgumentException("Such team doesn't exist");
+		teams.remove(team);
 	}
 	
 	public static boolean teamExists(String name) {
-		return teams.containsKey(name);
+		return getTeamByName(name) != null;
 	}
 	
 	public static ManhuntTeam getTeamByName(String name) {
-		return teams.get(name);
+		for(ManhuntTeam t : teams) {
+			if(t.getName().equalsIgnoreCase(name)) return t;
+		}
+		return null;
 	}
 	
 	public static ManhuntTeam getTeamByPlayerNickname(String nickname) {
-		for(Map.Entry<String, ManhuntTeam> team : teams.entrySet()) {
-			if(team.getValue().getPlayer(nickname) != null) return team.getValue();
+		for(ManhuntTeam team : teams) {
+			if(team.getPlayer(nickname) != null) return team;
 		}
 		return null;
 	}
 	
 	public static String getTeamNameByPlayerNickname(String nickname) {
-		for(Map.Entry<String, ManhuntTeam> team : teams.entrySet()) {
-			if(team.getValue().getPlayer(nickname) != null) return team.getKey();
-		}
-		return null;
+		ManhuntTeam team = getTeamByPlayerNickname(nickname);
+		return team != null ? team.getName() : null;
 	}
 	
 	public static ManhuntPlayer getPlayer(String nickname) {
-		for(Map.Entry<String, ManhuntTeam> team : teams.entrySet()) {
-			ManhuntPlayer p = team.getValue().getPlayer(nickname);
+		for(ManhuntTeam team : teams) {
+			ManhuntPlayer p = team.getPlayer(nickname);
 			if(p != null) return p;
 		}
 		return null;
@@ -79,8 +84,8 @@ public class TeamsManager {
 	
 	public static void resetTeams() {
 		clearTeams();
-		addTeam("hunters", new ManhuntTeam(true, false));
-		addTeam("speedrunners", new ManhuntTeam(false, true));
+		createTeam(new ManhuntTeam("hunters").setCanUseTracking(true).setCanBeTracked(false));
+		createTeam(new ManhuntTeam("speedrunners").setCanUseTracking(false).setCanBeTracked(true));
 		getTeamByName("hunters").addTeamToTrack(getTeamByName("speedrunners"));
 	}
 	
@@ -106,10 +111,10 @@ public class TeamsManager {
 	}
 	
 	private static void internalRemFromOtherAndNotify(String nickname, ManhuntTeam team, CommandSender sender) {
-		for(Map.Entry<String, ManhuntTeam> t : teams.entrySet()) {
-			if(t.getValue() != team) {
-				t.getValue().removePlayer(nickname);
-				t.getValue().sendMessage(FormattedMessages.playerLeftTeamMessage(nickname), nickname);
+		for(ManhuntTeam t : teams) {
+			if(t != team) {
+				t.removePlayer(nickname);
+				t.sendMessage(FormattedMessages.playerLeftTeamMessage(nickname), nickname);
 			}
 		}
 	}

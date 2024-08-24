@@ -36,6 +36,7 @@ import org.greenem.plugins.manhunt.compass.TeamsManager;
 import org.greenem.plugins.manhunt.completers.MhGmCompleter;
 import org.greenem.plugins.manhunt.completers.MhStartCompleter;
 import org.greenem.plugins.manhunt.completers.MhTeamCompleter;
+import org.greenem.plugins.manhunt.completers.MhTeamToolsCompleter;
 import org.greenem.plugins.manhunt.completers.plain.EmptyCompleter1Arg;
 import org.greenem.plugins.manhunt.completers.plain.EmptyCompleterNoArgs;
 import org.greenem.plugins.manhunt.config.ConfigOperations;
@@ -181,6 +182,7 @@ public class Main extends JavaPlugin implements Listener {
 		getCommand("resetworld").setTabCompleter(new EmptyCompleterNoArgs());
 		getCommand("mhw-about").setTabCompleter(new EmptyCompleterNoArgs());
 		getCommand("mhteam").setTabCompleter(new MhTeamCompleter());
+		getCommand("mhteam_tools").setTabCompleter(new MhTeamToolsCompleter());
 		getCommand("mhissues").setTabCompleter(new MhProblemsCompleter());
 	}
 	
