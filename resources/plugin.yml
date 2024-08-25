@@ -1,12 +1,12 @@
 name: AdvancedManhunt
-main: org.greenem.plugins.manhunt.main.Main
+main: org.daylight.plugins.manhunt.main.Main
 version: 1.6.0
 api-version: 1.16
 commands:
    mhteam:
       description: Join or leave a manhunt team
       default: true
-   mhteam_tools:
+   mhteams:
       description: Manhunt team creation, configuration and etc.
       default: true
    mhgame:
@@ -35,9 +35,6 @@ commands:
       permission: op
    mhreloadconfig:
       description: Reload the plugin config
-      permission: op
-   resetworld:
-      description: DELETES THE WORLD AND RESTARTS THE SERVER, may be moved to a separate plugin later
       permission: op
    mhw-about:
       description: Display info about the plugin and it's authors
