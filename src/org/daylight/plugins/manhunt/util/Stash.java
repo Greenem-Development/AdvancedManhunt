@@ -4,6 +4,7 @@ import static org.daylight.plugins.manhunt.util.SimpleLogger.debug;
 import static org.daylight.plugins.manhunt.util.SimpleLogger.log;
 
 import org.bukkit.ChatColor;
+import org.bukkit.GameMode;
 import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
@@ -47,5 +48,18 @@ public class Stash {
 			return false;
 		}
 		return true;
+	}
+	
+	public static void healPlayer(Player p) {
+		p.setHealth(20);
+		p.setFoodLevel(20);
+//		p.setSaturation(20); // ???
+	}
+
+	public static void disableFlightIfSurv(Player p) {
+		if(p.getGameMode()==GameMode.SURVIVAL || p.getGameMode()==GameMode.ADVENTURE) {
+			p.setAllowFlight(false);
+		}
+		p.setFlying(false);
 	}
 }

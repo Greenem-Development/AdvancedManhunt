@@ -23,7 +23,7 @@ public class ConfigOperations {
 	public static void loadConfig() {
 		File f = new File(pluginConfigDirectory, Lines.mainConfigName);
 		@SuppressWarnings("unused")
-		boolean fileExisted = f.exists(); // could improve
+		boolean fileExisted = f.exists(); // could be improved
 		
 		f.getParentFile().mkdirs();
 		YamlConfiguration c = YamlConfiguration.loadConfiguration(f);
@@ -38,6 +38,8 @@ public class ConfigOperations {
 				ConfigData.clearItemsOnStart);
 		ConfigData.healOnStart = (boolean) loadKey(c, "settings.game.on-start.heal-players",
 				ConfigData.healOnStart);
+		ConfigData.forceSurvivalOnStart = (boolean) loadKey(c, "settings.game.on-start.force-survival-mode",
+				ConfigData.forceSurvivalOnStart);
 		
 		configVersion = (String) loadKey(c, "internal.config-version", null);
 		

@@ -9,5 +9,6 @@ public class ConfigData {
 //	public static boolean disableNoExistingStartFileWarning = false;
 	public static boolean clearItemsOnStart = true;
 	public static boolean healOnStart = true;
+	public static boolean forceSurvivalOnStart = true;
 //	public static boolean allowWorldResetting = true;
 }

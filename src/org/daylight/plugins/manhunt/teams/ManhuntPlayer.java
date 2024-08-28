@@ -1,6 +1,8 @@
 package org.daylight.plugins.manhunt.teams;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.entity.Player;
 
 public class ManhuntPlayer {
 	private String nickname;
@@ -12,6 +14,10 @@ public class ManhuntPlayer {
 	public ManhuntPlayer(String nickname) {
 		super();
 		this.nickname = nickname;
+	}
+	
+	public Player getPlayer() {
+		return Bukkit.getPlayerExact(nickname);
 	}
 	
 	public String getNickname() {

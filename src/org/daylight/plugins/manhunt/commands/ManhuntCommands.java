@@ -125,7 +125,7 @@ public class ManhuntCommands {
 //				if(Hunters.size()==0) {
 //					sender.sendMessage(ChatColor.YELLOW + "You are starting the game against NO HUNTERS"); //. If that's a mistake, do /mhstop // add later
 //				}
-				ManhuntCommandActions.mhStart(Integer.parseInt(args[0]));
+				ManhuntCommandActions.mhStartGame(Integer.parseInt(args[0]));
 			}
 			else {
 				sender.sendMessage(ChatColor.RED + "Use a number as the argument");

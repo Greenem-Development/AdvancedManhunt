@@ -29,7 +29,7 @@ public class ManhuntEvents implements Listener {
 		// Compass functionality
 		if(team.canBeTracked()) CompassUpdating.updateOnMovement(e.getPlayer(), e.getTo());
 		// Frozen players functuonality
-		if(FrozenEvents.FrozenPlayersNicknames.contains(pName)) cancelMovement(e);
+		if(FrozenEvents.isPlayerFrozen(pName)) cancelMovement(e);
 	}
 	
 	@EventHandler
@@ -62,10 +62,10 @@ public class ManhuntEvents implements Listener {
 		Location loc = e.getTo().clone();
 		p.setAllowFlight(true);
 		p.setFlying(true);
-		loc.setWorld(FrozenEvents.FrozenPlayersSavedLocations.get(p).getWorld());
-		loc.setX(FrozenEvents.FrozenPlayersSavedLocations.get(p).getX());
-		loc.setY(FrozenEvents.FrozenPlayersSavedLocations.get(p).getY());
-		loc.setZ(FrozenEvents.FrozenPlayersSavedLocations.get(p).getZ());
+		loc.setWorld(FrozenEvents.getPlayerFreezeLocation(p.getName()).getWorld());
+		loc.setX(FrozenEvents.getPlayerFreezeLocation(p.getName()).getX());
+		loc.setY(FrozenEvents.getPlayerFreezeLocation(p.getName()).getY());
+		loc.setZ(FrozenEvents.getPlayerFreezeLocation(p.getName()).getZ());
 		p.teleport(loc);
 	}
 }
