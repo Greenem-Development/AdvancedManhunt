@@ -22,10 +22,10 @@ public class FormattedMessages {
 	
 	private static String playerColor = ChatColor.GRAY + "" + ChatColor.BOLD;
 	
-	private static String peacefulTeamColor = ChatColor.GREEN + "" + ChatColor.BOLD;
-	private static String agressiveTeamColor = ChatColor.RED + "" + ChatColor.BOLD;
-	private static String miscTeamColor = ChatColor.AQUA + "" + ChatColor.BOLD;
-	private static String weirdTeamColor = ChatColor.GRAY + "" + ChatColor.BOLD;
+	private static String peacefulTeamColor = ChatColor.GREEN + "";
+	private static String agressiveTeamColor = ChatColor.RED + "";
+	private static String miscTeamColor = ChatColor.AQUA + "";
+	private static String weirdTeamColor = ChatColor.GRAY + "";
 	
 	public static String playerJoinedTeamMessage(String nickname) {
 		return baseColor + getPlayerNickname(nickname) + " has joined the team";
@@ -36,19 +36,19 @@ public class FormattedMessages {
 	}
 	
 	public static String youJoinedTeamMessage(String nickname, String teamName, ManhuntTeam team) {
-		return baseColor + "You have joined the " + getDecoTeamName(team) + " team";
+		return baseColor + "You have joined the " + getColoredTeamName(team) + " team";
 	}
 	
 	public static String youLeftTeamMessage(String nickname, String teamName, ManhuntTeam team) {
-		return baseColor + "You have left the " + getDecoTeamName(team) + " team";
+		return baseColor + "You have left the " + getColoredTeamName(team) + " team";
 	}
 	
 	public static String youWereAddedToTeamMessage(String nickname, String teamName, ManhuntTeam team, CommandSender whoDidThat) {
-		return baseColor + " You have beed added to the " + getDecoTeamName(team) + " team by " + getDecoSenderName(whoDidThat);
+		return baseColor + " You have beed added to the " + getColoredTeamName(team) + " team by " + getColoredSenderName(whoDidThat);
 	}
 	
 	public static String youWereRemovedFromTeamMessage(String nickname, String teamName, ManhuntTeam team, CommandSender whoDidThat) {
-		return baseColor + " You have been removed from the " + getDecoTeamName(team) + " team by " + getDecoSenderName(whoDidThat);
+		return baseColor + " You have been removed from the " + getColoredTeamName(team) + " team by " + getColoredSenderName(whoDidThat);
 	}
 	
 	public static String someoneIsAlreadyTeamMessage(String nickname) {
@@ -79,14 +79,14 @@ public class FormattedMessages {
 		return baseColor + ChatColor.RED + "You can't hold the compass in the nether and the end, so it won't update until you stop";
 	}
 	
-	public static String getDecoTeamName(ManhuntTeam team) {
+	public static String getColoredTeamName(ManhuntTeam team) {
 		return getTeamColor(team) + team.getName() + baseColor;
 	}
 	
-	public static String getDecoTeamName(String teamName) {
+	public static String getColoredTeamName(String teamName) {
 		ManhuntTeam team = TeamsManager.getTeamByName(teamName);
 		if(team == null) return null;
-		return getDecoTeamName(team);
+		return getColoredTeamName(team);
 	}
 	
 	public static String getPlayerNickname(String nickname) {
@@ -98,17 +98,23 @@ public class FormattedMessages {
 		sender.sendMessage(messageColor + text.replace("%rst", messageColor).replace("%hlt", highlightColor));
 	}
 	
-	public static String getDecoSenderName(CommandSender sender) {
+	public static String getColoredSenderName(CommandSender sender) {
 		if(sender instanceof ConsoleCommandSender) return playerColor + "[CONSOLE]" + baseColor;
 		if(sender instanceof Player) return playerColor + sender.getName() + baseColor;
 		return playerColor + "Non-player: " + sender.getName() + baseColor;
 	}
 	
 	public static String getTeamColor(ManhuntTeam team) {
-		if(team.canBeTracked() && !team.canUseTracking()) return peacefulTeamColor;
-		else if(team.canBeTracked() && team.canUseTracking()) return miscTeamColor;
-		else if(!team.canBeTracked() && team.canUseTracking()) return agressiveTeamColor;
-		else return weirdTeamColor;
+		return getTeamColor(team, ChatColor.BOLD + "");
+	}
+	
+	public static String getTeamColor(ManhuntTeam team, String style) {
+		String actualStyle = ChatColor.BOLD + "";
+		if(style != null) actualStyle = style;
+		if(team.canBeTracked() && !team.canUseTracking()) return peacefulTeamColor + actualStyle;
+		else if(team.canBeTracked() && team.canUseTracking()) return miscTeamColor + actualStyle;
+		else if(!team.canBeTracked() && team.canUseTracking()) return agressiveTeamColor + actualStyle;
+		else return weirdTeamColor + actualStyle;
 	}
 	
 	private static String getMessageColor(MessageType type) {

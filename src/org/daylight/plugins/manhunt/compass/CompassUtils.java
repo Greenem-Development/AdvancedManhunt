@@ -61,7 +61,9 @@ public class CompassUtils {
 	}
 	
 	public static void giveCompass(Player p) {
-		Stash.AddItemStack(p, ManhuntItems.getCompassTrackingATeam(), 8);
+		ItemStack compass = ManhuntItems.createTrackingCompass();
+		ManhuntItems.updateCompassName(p.getName(), compass);
+		Stash.AddItemStack(p, compass, 8);
 	}
 	
 	private static List<String> playersWarnedOfNetherCompass = new ArrayList<>();

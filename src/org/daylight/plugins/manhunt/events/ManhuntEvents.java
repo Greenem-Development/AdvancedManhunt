@@ -151,7 +151,7 @@ public class ManhuntEvents implements Listener {
 		Player p = e.getPlayer();
 		String nameP = p.getName();
 		if(Hunters.contains(nameP)) {
-			Stash.AddItemStack(p, ManhuntItems.getCompassTrackingATeam(), 8);
+			Stash.AddItemStack(p, ManhuntItems.createTrackingCompass(), 8);
 			CompassUpdating.findTarget();
 		}
 		

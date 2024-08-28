@@ -86,7 +86,7 @@ public class CompassUpdating {
 //	    	  			meta.setLodestone(null);
 ////	    	  			meta.setLodestone(target);
 //	    	  			currentItem.setItemMeta(meta);
-	    	  			ItemStack is = ManhuntItems.getCompassTrackingATeam();
+	    	  			ItemStack is = ManhuntItems.createTrackingCompass();
 	    	  			is.setAmount(currentItem.getAmount());
 	    	  			h.getInventory().setItem(i, is);
 //	    	  			debug("DISABLING LODESTONE, target: " + shortLocation(target));

@@ -70,7 +70,6 @@ tasks {
 	jar {
 		dependsOn(shadowJar)
 		
-		//archiveBaseName = 'AdvancedManhunt'
 	    //destinationDirectory.set(file(jarFileDestinationPath))
 	    //configurations.implementation.canBeResolved=true
 	    //from { configurations.implementation.collect {

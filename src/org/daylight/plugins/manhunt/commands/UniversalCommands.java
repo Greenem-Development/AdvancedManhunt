@@ -58,7 +58,7 @@ public class UniversalCommands {
 			if(!Hunters.contains(pName)) {
 				Hunters.add(pName);
 				ac.targetPlayer.getInventory().remove(Material.COMPASS);
-				Stash.AddItemStack(ac.targetPlayer, ManhuntItems.getCompassTrackingATeam(), 8);
+				Stash.AddItemStack(ac.targetPlayer, ManhuntItems.createTrackingCompass(), 8);
 				CompassUpdating.findTarget();
 				if(!ac.targetPlayer.equals(ac.senderPlayer)) {
 //					ac.targetPlayer.sendMessage(ChatColor.GOLD + ac.senderPlayer.getName() + " has added you to the hunters list");

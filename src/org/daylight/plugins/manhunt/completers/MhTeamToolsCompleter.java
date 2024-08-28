@@ -158,7 +158,7 @@ public class MhTeamToolsCompleter implements TabCompleter {
 			}
 			ManhuntTeam newTeam = new ManhuntTeam(teamName).setCanUseTracking(false).setCanBeTracked(true);
 			TeamsManager.createTeam(newTeam);
-			FormattedMessages.sendColoredMessage(sender, MessageType.NORMAL, "Created team " + FormattedMessages.getDecoTeamName(newTeam));
+			FormattedMessages.sendColoredMessage(sender, MessageType.NORMAL, "Created team " + FormattedMessages.getColoredTeamName(newTeam));
 			return nothing;
 		}
 		
@@ -166,7 +166,7 @@ public class MhTeamToolsCompleter implements TabCompleter {
 			String teamName = CompleterUtils.formatRemoveNameQuotes(matcher.get().group(1));
 			ManhuntTeam theTeam = checkTeamOption(sender, teamName);
 			if(theTeam == null) return nothing;
-			String teamText = FormattedMessages.getDecoTeamName(theTeam);
+			String teamText = FormattedMessages.getColoredTeamName(theTeam);
 			TeamsManager.deleteTeam(teamName);
 			FormattedMessages.sendColoredMessage(sender, MessageType.NORMAL, "Deleted team " + teamText);
 			return nothing;
@@ -214,7 +214,7 @@ public class MhTeamToolsCompleter implements TabCompleter {
 			ManhuntTeam team = checkTeamOption(sender, teamName);
 			if(team != null) {
 				team.setCanUseTracking(Boolean.parseBoolean(matcher.get().group(2)));
-				FormattedMessages.sendColoredMessage(sender, MessageType.NORMAL, "Have set \"can use tracking\" to %hlt" + matcher.get().group(2).toLowerCase() + "%rst for " + FormattedMessages.getDecoTeamName(teamName));
+				FormattedMessages.sendColoredMessage(sender, MessageType.NORMAL, "Have set \"can use tracking\" to %hlt" + matcher.get().group(2).toLowerCase() + "%rst for " + FormattedMessages.getColoredTeamName(teamName));
 			}
 			return nothing;
 		}
@@ -224,7 +224,7 @@ public class MhTeamToolsCompleter implements TabCompleter {
 			ManhuntTeam team = checkTeamOption(sender, teamName);
 			if(team != null) {
 				team.setCanBeTracked(Boolean.parseBoolean(matcher.get().group(2)));
-				FormattedMessages.sendColoredMessage(sender, MessageType.NORMAL, "Have set \"can be tracked\" to %hlt" + matcher.get().group(2).toLowerCase() + "%rst for " + FormattedMessages.getDecoTeamName(teamName));
+				FormattedMessages.sendColoredMessage(sender, MessageType.NORMAL, "Have set \"can be tracked\" to %hlt" + matcher.get().group(2).toLowerCase() + "%rst for " + FormattedMessages.getColoredTeamName(teamName));
 			}
 			return nothing;
 		}
@@ -244,7 +244,7 @@ public class MhTeamToolsCompleter implements TabCompleter {
 			Pair<ManhuntTeam, ManhuntTeam> teams = checkTeamsOptions(sender, team1Name, team2Name);
 			if(teams.getValue0() != null && teams.getValue1() != null) {
 				teams.getValue0().addTeamToTrack(teams.getValue1());
-				FormattedMessages.sendColoredMessage(sender, MessageType.NORMAL, "Team " + FormattedMessages.getDecoTeamName(team1Name) + "%rst is now tracking team " + FormattedMessages.getDecoTeamName(team2Name));
+				FormattedMessages.sendColoredMessage(sender, MessageType.NORMAL, "Team " + FormattedMessages.getColoredTeamName(team1Name) + "%rst is now tracking team " + FormattedMessages.getColoredTeamName(team2Name));
 			}
 			return nothing;
 		}
@@ -255,7 +255,7 @@ public class MhTeamToolsCompleter implements TabCompleter {
 			Pair<ManhuntTeam, ManhuntTeam> teams = checkTeamsOptions(sender, team1Name, team2Name);
 			if(teams.getValue0() != null && teams.getValue1() != null) {
 				teams.getValue0().addTeamToTrack(teams.getValue1());
-				FormattedMessages.sendColoredMessage(sender, MessageType.NORMAL, "Team " + FormattedMessages.getDecoTeamName(team1Name) + "%rst is now not tracking team " + FormattedMessages.getDecoTeamName(team2Name) + "%rst anymore");
+				FormattedMessages.sendColoredMessage(sender, MessageType.NORMAL, "Team " + FormattedMessages.getColoredTeamName(team1Name) + "%rst is now not tracking team " + FormattedMessages.getColoredTeamName(team2Name) + "%rst anymore");
 			}
 			return nothing;
 		}
@@ -264,16 +264,16 @@ public class MhTeamToolsCompleter implements TabCompleter {
 			String teamName = CompleterUtils.formatRemoveNameQuotes(matcher.get().group(1));
 			ManhuntTeam team = checkTeamOption(sender, teamName);
 			if(team != null) {
-				String text = "---- Team " + FormattedMessages.getDecoTeamName(teamName) + " ----\n";
+				String text = "---- Team " + FormattedMessages.getColoredTeamName(teamName) + " ----\n";
 				
 				if(team.getListTrackingOtherTeams().size() > 0) text += "\n%hltTracking:%rst";
 				for(ManhuntTeam otherTeam : team.getListTrackingOtherTeams()) {
-					text += "\n%rst- " + FormattedMessages.getDecoTeamName(otherTeam.getName());
+					text += "\n%rst- " + FormattedMessages.getColoredTeamName(otherTeam.getName());
 				}
 				
 				if(team.getListBeingTrackedByTeams().size() > 0) text += "\n%hltTracked by:%rst";
 				for(ManhuntTeam otherTeam : team.getListBeingTrackedByTeams()) {
-					text += "\n%rst- " + FormattedMessages.getDecoTeamName(otherTeam.getName());
+					text += "\n%rst- " + FormattedMessages.getColoredTeamName(otherTeam.getName());
 				}
 				
 				if(team.getListTrackingOtherTeams().size() == 0 && team.getListBeingTrackedByTeams().size() == 0) {
