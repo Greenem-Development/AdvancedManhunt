@@ -4,8 +4,8 @@ import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.daylight.plugins.manhunt.compass.TeamsManager;
-import org.daylight.plugins.manhunt.structs.ManhuntTeam;
+import org.daylight.plugins.manhunt.teams.ManhuntTeam;
+import org.daylight.plugins.manhunt.teams.TeamManager;
 import org.daylight.plugins.manhunt.util.projectspecific.FormattedMessages;
 
 public class ManhuntItems {
@@ -74,7 +74,7 @@ public class ManhuntItems {
 		ItemMeta meta = item.getItemMeta();
 		meta.setDisplayName("Compass");
 		
-		ManhuntTeam team = TeamsManager.getTeamByPlayerNickname(playerName);
+		ManhuntTeam team = TeamManager.getTeamByPlayerNickname(playerName);
 		if(team == null || !team.canUseTracking() || team.getListTrackingOtherTeams().size() == 0
 				|| getCompassType(item) == null || getCompassType(item) == CompassType.DISABLED) {}
 		else {
@@ -91,7 +91,7 @@ public class ManhuntItems {
 			else if(getCurrentTargetValueType(item) == CurrentTargetValueType.SPECIFIC_PLAYER) {
 				if(getCurrentTargetPlayerName(item) != null) {
 					String targetPlayerName = getCurrentTargetPlayerName(item);
-					ManhuntTeam targetTeam = TeamsManager.getTeamByPlayerNickname(targetPlayerName);
+					ManhuntTeam targetTeam = TeamManager.getTeamByPlayerNickname(targetPlayerName);
 					if(targetTeam != null) {
 						meta.setDisplayName(itemNameMainColor + "Tracking " + FormattedMessages.getTeamColor(targetTeam, ChatColor.ITALIC + "") + targetPlayerName);
 					}

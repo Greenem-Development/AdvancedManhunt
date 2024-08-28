@@ -13,30 +13,18 @@ import org.bukkit.Material;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.daylight.plugins.manhunt.compass.CompassUtils;
-import org.daylight.plugins.manhunt.compass.TeamsManager;
 import org.daylight.plugins.manhunt.completers.MhTeamCompleter;
 import org.daylight.plugins.manhunt.completers.MhTeamToolsCompleter;
 import org.daylight.plugins.manhunt.completers.MhTeamCompleter.MhTeamArgs;
 import org.daylight.plugins.manhunt.config.ConfigOperations;
-import org.daylight.plugins.manhunt.structs.ManhuntTeam;
+import org.daylight.plugins.manhunt.teams.ManhuntTeam;
+import org.daylight.plugins.manhunt.teams.TeamManager;
 import org.daylight.plugins.manhunt.util.StandartUtils;
 import org.daylight.plugins.manhunt.util.projectspecific.FormattedMessages;
 
 public class ManhuntCommands {
-//	private static String messageNoPlayerSpecified = ChatColor.RED + "You should specify the player to apply the result to";
-//	private static String msgWrongUsage = ChatColor.RED + "Wrong command usage";
-//	private static String msgSpecifyPlayer = ChatColor.RED + "You should specify the player to apply the action to!";
-//	private static String msgShouldntArgs = ChatColor.RED + "You shouldn't put any extra arguments there!";
-//	private static String msgCantSelfConsole = ChatColor.RED + "You can't apply this to yourself as the console!";
-	
-	public static void reloadConfigCommand(CommandSender sender) {
-		ConfigOperations.updateAndLoadConfig(); // maybe just load
-		// and maybe check for user-added fields and delete them or something like that (maybe change something else too)
-		sender.sendMessage(ChatColor.GREEN + "Successfully reloaded the config");
-	}
-	
 	public static void problemsCommand(Player p, String[] args) {
-		ManhuntTeam ownTeam = TeamsManager.getTeamByPlayerNickname(p.getName());
+		ManhuntTeam ownTeam = TeamManager.getTeamByPlayerNickname(p.getName());
 		if(ownTeam == null) {
 			p.sendMessage(ChatColor.RED + "You are not in a team!");
 			return;
@@ -75,9 +63,9 @@ public class ManhuntCommands {
 			playerNames = new ArrayList<>();
 			playerNames.add(sender.getName());
 		} else if(check(specificArgs.typeOfSomeone, "everyone")) {
-			playerNames = TeamsManager.getAllPlayers();
+			playerNames = TeamManager.getAllPlayers();
 		} else if(check(specificArgs.typeOfSomeone, "remaining")) {
-			playerNames = TeamsManager.getRemainingPlayers(toAdd);
+			playerNames = TeamManager.getRemainingPlayers(toAdd);
 		} else if(!(sender instanceof Player)) {
 			sender.sendMessage("You can't apply this action on such target!");
 			return;
@@ -101,15 +89,15 @@ public class ManhuntCommands {
 			return;
 		}
 		
-		if(!toAdd || teamName != null && TeamsManager.teamExists(teamName)) {
+		if(!toAdd || teamName != null && TeamManager.teamExists(teamName)) {
 			if(toAdd) {
-				int result = TeamsManager.addToTeamAndRemFromOtherAndNotify(nickname, teamName, sender);
+				int result = TeamManager.addToTeamAndRemFromOtherAndNotify(nickname, teamName, sender);
 				if(result == -1) {
 					if(sender == p) sender.sendMessage(FormattedMessages.youAreAlreadyTeamMessage());
 					else sender.sendMessage(FormattedMessages.someoneIsAlreadyTeamMessage(p.getName()));
 				}
 			} else {
-				TeamsManager.removeFromTeamAndNotify(nickname, sender);
+				TeamManager.removeFromTeamAndNotify(nickname, sender);
 			}
 		}
 	}

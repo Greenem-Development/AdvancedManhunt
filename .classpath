@@ -18,6 +18,5 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="con" path="org.eclipse.buildship.core.gradleclasspathcontainer"/>
-	<classpathentry kind="lib" path="C:/andrey/AdvancedManhunt-1.6.1.jar"/>
 	<classpathentry kind="output" path="bin/default"/>
 </classpath>

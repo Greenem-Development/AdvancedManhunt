@@ -1,4 +1,4 @@
-package org.daylight.plugins.manhunt.compass;
+package org.daylight.plugins.manhunt.teams;
 
 import static org.daylight.plugins.manhunt.util.SimpleLogger.debug;
 import static org.daylight.plugins.manhunt.util.SimpleLogger.log;
@@ -9,11 +9,11 @@ import java.util.List;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.daylight.plugins.manhunt.structs.ManhuntPlayer;
-import org.daylight.plugins.manhunt.structs.ManhuntTeam;
+import org.daylight.plugins.manhunt.compass.CompassUpdating;
+import org.daylight.plugins.manhunt.compass.CompassUtils;
 import org.daylight.plugins.manhunt.util.projectspecific.FormattedMessages;
 
-public class TeamsManager {
+public class TeamManager {
 	private static List<ManhuntTeam> teams = new ArrayList<>();
 	
 	public static List<ManhuntTeam> getAllTeams() {
@@ -29,7 +29,7 @@ public class TeamsManager {
 	}
 	
 	public static void createTeam(ManhuntTeam team) {
-		if(teamExists(team.getName())) throw new IllegalArgumentException("Such team already exists");
+		if(teamExists(team.getName())) return; // throw new IllegalArgumentException("Such team already exists");
 		teams.add(team);
 	}
 	
@@ -39,6 +39,7 @@ public class TeamsManager {
 	}
 	
 	public static void deleteTeam(ManhuntTeam team) {
+		if(team == null) return;
 //		if(!teams.contains(team)) throw new IllegalArgumentException("Such team doesn't exist");
 		teams.remove(team);
 	}
@@ -80,8 +81,8 @@ public class TeamsManager {
 	
 	public static void resetTeams() {
 		clearTeams();
-		createTeam(new ManhuntTeam("hunters").setCanUseTracking(true).setCanBeTracked(false));
-		createTeam(new ManhuntTeam("speedrunners").setCanUseTracking(false).setCanBeTracked(true));
+		createTeam(new ManhuntTeam("hunters").setCanUseTracking(true).setCanBeTracked(false).setFrozenOnStart(true));
+		createTeam(new ManhuntTeam("speedrunners").setCanUseTracking(false).setCanBeTracked(true).setFrozenOnStart(false));
 		getTeamByName("hunters").addTeamToTrack(getTeamByName("speedrunners"));
 	}
 	
@@ -117,14 +118,14 @@ public class TeamsManager {
 	
 	public static void removeFromTeamAndNotify(String nickname, CommandSender sender) {
 		Player p = Bukkit.getPlayerExact(nickname);
-		ManhuntTeam team = TeamsManager.getTeamByPlayerNickname(nickname);
+		ManhuntTeam team = TeamManager.getTeamByPlayerNickname(nickname);
 		log(team);
 		if(team == null) {
 			if(sender == p) sender.sendMessage(FormattedMessages.youAreNotInATeamYetMessage());
 			else sender.sendMessage(FormattedMessages.someoneIsNotInATeamYetMessage(nickname));
 			return;
 		}
-		String teamName = TeamsManager.getTeamNameByPlayerNickname(nickname);
+		String teamName = TeamManager.getTeamNameByPlayerNickname(nickname);
 		team.removePlayer(nickname);
 		team.sendMessage(FormattedMessages.playerLeftTeamMessage(nickname), nickname);
 		
@@ -144,7 +145,7 @@ public class TeamsManager {
 	public static List<String> getRemainingPlayers(boolean toAdd) {
 		List<String> players = new ArrayList<>();
 		for(Player p : Bukkit.getOnlinePlayers()) {
-			boolean isInATeam = TeamsManager.getPlayer(p.getName()) != null;
+			boolean isInATeam = TeamManager.getPlayer(p.getName()) != null;
 			if(toAdd && !isInATeam || !toAdd && isInATeam) players.add(p.getName());
 		}
 		return players;

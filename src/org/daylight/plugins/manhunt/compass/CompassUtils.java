@@ -12,7 +12,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.CompassMeta;
 import org.daylight.plugins.manhunt.main.Main;
-import org.daylight.plugins.manhunt.structs.ManhuntTeam;
+import org.daylight.plugins.manhunt.teams.ManhuntTeam;
 import org.daylight.plugins.manhunt.util.Stash;
 import org.daylight.plugins.manhunt.util.projectspecific.nbt.ManhuntItems;
 
@@ -27,7 +27,9 @@ public class CompassUtils {
 	private static void setUsualCompass(ItemStack compassItem) { // good
 		CompassMeta meta = (CompassMeta) compassItem.getItemMeta();
 		meta.setLodestoneTracked(false);
-		meta.setLodestone(null);
+		try {
+			meta.setLodestone(null);
+		} catch (IllegalArgumentException e) {} // it is sometimes thrown from a new or maybe just usual compass, no idea how to manage other way
 		compassItem.setItemMeta(meta);
 	}
 	

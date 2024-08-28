@@ -18,17 +18,18 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.daylight.plugins.manhunt.commands.ManhuntCommands;
-import org.daylight.plugins.manhunt.compass.TeamsManager;
 import org.daylight.plugins.manhunt.completers.MhProblemsCompleter;
 import org.daylight.plugins.manhunt.completers.MhTeamCompleter;
 import org.daylight.plugins.manhunt.completers.MhTeamToolsCompleter;
 import org.daylight.plugins.manhunt.completers.plain.EmptyCompleterNoArgs;
 import org.daylight.plugins.manhunt.config.ConfigOperations;
+import org.daylight.plugins.manhunt.config.ConfigWatcher;
 import org.daylight.plugins.manhunt.coreDependent.AuthorsAdvancedVer;
 import org.daylight.plugins.manhunt.coreDependent.AuthorsBaiscVer;
 import org.daylight.plugins.manhunt.data.References;
 import org.daylight.plugins.manhunt.events.FrozenEvents;
 import org.daylight.plugins.manhunt.events.ManhuntEvents;
+import org.daylight.plugins.manhunt.teams.TeamManager;
 import org.daylight.plugins.manhunt.util.OsDependent;
 import org.daylight.plugins.manhunt.util.SimpleLogger;
 import org.daylight.plugins.manhunt.util.projectspecific.DebugModeSwitch;
@@ -36,22 +37,17 @@ import org.daylight.plugins.manhunt.util.projectspecific.DebugModeSwitch;
 import de.tr7zw.changeme.nbtapi.NBT;
 
 public class Main extends JavaPlugin implements Listener {
-	public Plugin plugin = this;
+	public static Plugin plugin;
 
 	private static Main instance;
-	public static Main getInstance() { // not synchronized, but that's ok
+	public static Main getInstance() { // not synchronized, but that's ok // what???
 		return instance;
 	}
 	
 	@Override
 	public void onEnable() {
-		if (!NBT.preloadApi()) {
-	        getLogger().warning("NBT-API wasn't initialized properly, disabling the plugin");
-	        getPluginLoader().disablePlugin(this);
-	        return;
-	    }
+		if(!preloadNbtApi()) return;
 		initEverything();
-		ConfigOperations.updateAndLoadConfig();
 		finishInitialization();
 		instance = this;
 	}
@@ -68,11 +64,7 @@ public class Main extends JavaPlugin implements Listener {
 			p = (Player) sender;
 		} catch (ClassCastException e) {}
 		
-		if (cmd.getName().equalsIgnoreCase("mhreloadconfig")) {
-			if(!isSenderAPlayerOrConsole(sender)) return true;
-			ManhuntCommands.reloadConfigCommand(sender);
-		}
-		else if (cmd.getName().equalsIgnoreCase("mhw-about")) {
+		if (cmd.getName().equalsIgnoreCase("mhw-about")) {
 			try {
 				AuthorsAdvancedVer.authors(sender);
 			} catch (NoClassDefFoundError e) {
@@ -103,12 +95,24 @@ public class Main extends JavaPlugin implements Listener {
 	}
 	
 	private void initEverything() {
+		// Main info
+		plugin = this;
+		References.os = OsDependent.getSystemType();
+		
+		// Files
 		initFiles();
 		DebugModeSwitch.init();
-		References.os = OsDependent.getSystemType();
+		
+		// Config
+		ConfigOperations.updateAndLoadConfig();
+		startConfigWatcher();
+		
+		// Bukkit API
 		registerListeners();
 		registerCommands();
-		TeamsManager.resetTeams();
+		
+		// Plugin Functionality
+		TeamManager.resetTeams();
 	}
 	
 	private void registerListeners() {
@@ -117,9 +121,8 @@ public class Main extends JavaPlugin implements Listener {
 		Bukkit.getPluginManager().registerEvents(new ManhuntEvents(), this);
 	}
 	
-	private void registerCommands() { // can forget to change command name everywhere and get a bug
+	private void registerCommands() {
 //		getCommand("mhgame").setTabCompleter(new MhStartCompleter());
-		getCommand("mhreloadconfig").setTabCompleter(new EmptyCompleterNoArgs());
 		getCommand("mhw-about").setTabCompleter(new EmptyCompleterNoArgs());
 		getCommand("mhteam").setTabCompleter(new MhTeamCompleter());
 		getCommand("mhteams").setTabCompleter(new MhTeamToolsCompleter());
@@ -129,14 +132,28 @@ public class Main extends JavaPlugin implements Listener {
 	private void initFiles() {
 		serverDirectory = Bukkit.getWorldContainer();
 		configsDirectory = new File(serverDirectory, "plugins/configs");
-		pluginConfigDirectory = new File(configsDirectory, "ManhuntAndWorldReset");
+		pluginConfigDirectory = new File(configsDirectory, "AdvancedManhunt");
 		pluginConfigDirectory.mkdirs();
 	}
 	
+	private void startConfigWatcher() {
+		References.configWatcher = new ConfigWatcher();
+		References.configWatcher.start();
+	}
+	
 	private void finishInitialization() {
-		log(ChatColor.GREEN + "Advanced Manhunt plugin has been enabled!");
+		log(ChatColor.GREEN + "Advanced Manhunt" + ChatColor.RESET + " plugin has been enabled!");
 		if(SimpleLogger.debugOutputEnabled) debug(ChatColor.AQUA + "Debug mode is enabled");
 	}
 	
-	//TODO learn to send action bars
+	private boolean preloadNbtApi() {
+		if (!NBT.preloadApi()) {
+	        getLogger().warning("NBT-API wasn't initialized properly, disabling the plugin");
+	        getPluginLoader().disablePlugin(this);
+	        return false;
+	    }
+		return true;
+	}
+	
+	// TODO learn to send action bars
 }

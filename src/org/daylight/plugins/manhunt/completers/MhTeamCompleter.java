@@ -13,7 +13,7 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
-import org.daylight.plugins.manhunt.compass.TeamsManager;
+import org.daylight.plugins.manhunt.teams.TeamManager;
 
 public class MhTeamCompleter implements TabCompleter {
 	public static boolean check(String s1, String s2) {
@@ -119,7 +119,7 @@ public class MhTeamCompleter implements TabCompleter {
 			}
 			
 			if(actionType != null && !(check(actionType, "leave"))) {
-				return TeamsManager.getAllTeamsNames();
+				return TeamManager.getAllTeamsNames();
 			}
 		}
 		return arguments;

@@ -1,4 +1,4 @@
-package org.daylight.plugins.manhunt.structs;
+package org.daylight.plugins.manhunt.teams;
 
 import static org.daylight.plugins.manhunt.util.SimpleLogger.debug;
 import static org.daylight.plugins.manhunt.util.SimpleLogger.log;
@@ -16,6 +16,7 @@ public class ManhuntTeam {
 	private List<ManhuntPlayer> players = new ArrayList<>();
 	private boolean canUseTracking = true;
 	private boolean canBeTracked = true;
+	private boolean frozenOnStart = false;
 	
 	private List<ManhuntTeam> beingTrackedByTeams = new ArrayList<>(); // can later be implemented with a trackableAndTracking interface lists
 	private List<ManhuntTeam> trackingTeams = new ArrayList<>();
@@ -28,9 +29,10 @@ public class ManhuntTeam {
 	}
 	
 	public void addPlayer(ManhuntPlayer p) {
+		if(getPlayer(p.getNickname()) != null) return;
 		players.add(p);
 		p.setOwnTeam(this);
-		debug("Added: " + getPlayer(p.getNickname()) != null);
+//		debug("Added: " + getPlayer(p.getNickname()) != null);
 	}
 	
 	public void removePlayer(ManhuntPlayer p) {
@@ -75,6 +77,15 @@ public class ManhuntTeam {
 
 	public ManhuntTeam setCanBeTracked(boolean canBeTracked) {
 		this.canBeTracked = canBeTracked;
+		return this;
+	}
+	
+	public boolean getFrozenOnStart() {
+		return frozenOnStart;
+	}
+
+	public ManhuntTeam setFrozenOnStart(boolean frozenOnStart) {
+		this.frozenOnStart = frozenOnStart;
 		return this;
 	}
 	

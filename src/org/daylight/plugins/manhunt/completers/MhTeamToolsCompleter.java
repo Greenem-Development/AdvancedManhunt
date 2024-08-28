@@ -12,10 +12,10 @@ import java.util.regex.Pattern;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
-import org.daylight.plugins.manhunt.compass.TeamsManager;
 import org.daylight.plugins.manhunt.completers.util.CompleterUtils;
 import org.daylight.plugins.manhunt.data.Lines;
-import org.daylight.plugins.manhunt.structs.ManhuntTeam;
+import org.daylight.plugins.manhunt.teams.ManhuntTeam;
+import org.daylight.plugins.manhunt.teams.TeamManager;
 import org.daylight.plugins.manhunt.util.projectspecific.FormattedMessages;
 import org.daylight.plugins.manhunt.util.projectspecific.FormattedMessages.MessageType;
 import org.javatuples.Pair;
@@ -66,7 +66,7 @@ public class MhTeamToolsCompleter implements TabCompleter {
 	}
 	
 	private static ManhuntTeam checkTeamOption(CommandSender sender, String teamName) {
-		ManhuntTeam team = TeamsManager.getTeamByName(teamName);
+		ManhuntTeam team = TeamManager.getTeamByName(teamName);
 //		Pair<Boolean, Boolean> optionAndError = stringToBooleanAndError(optionName);
 		if(team == null) {
 			FormattedMessages.sendColoredMessage(sender, MessageType.ISSUE, "Such team doesn't exist!");
@@ -79,8 +79,8 @@ public class MhTeamToolsCompleter implements TabCompleter {
 	}
 	
 	private static Pair<ManhuntTeam, ManhuntTeam> checkTeamsOptions(CommandSender sender, String teamName, String targetTeamName) {
-		ManhuntTeam team = TeamsManager.getTeamByName(teamName);
-		ManhuntTeam targetTeam = TeamsManager.getTeamByName(targetTeamName);
+		ManhuntTeam team = TeamManager.getTeamByName(teamName);
+		ManhuntTeam targetTeam = TeamManager.getTeamByName(targetTeamName);
 		
 		if(team == null) {
 			sender.sendMessage("Such team doesn't exist!");
@@ -145,12 +145,12 @@ public class MhTeamToolsCompleter implements TabCompleter {
 		
 		if(!forTheCompleter && matchesPattern(matcher, s, patternCreateTeamDone)) {
 			String teamName = CompleterUtils.formatRemoveNameQuotes(matcher.get().group(1));
-			if(TeamsManager.teamExists(teamName)) {
+			if(TeamManager.teamExists(teamName)) {
 				FormattedMessages.sendColoredMessage(sender, MessageType.ISSUE, "Such team already exists!");
 				return nothing;
 			}
 			ManhuntTeam newTeam = new ManhuntTeam(teamName).setCanUseTracking(false).setCanBeTracked(true);
-			TeamsManager.createTeam(newTeam);
+			TeamManager.createTeam(newTeam);
 			FormattedMessages.sendColoredMessage(sender, MessageType.NORMAL, "Created team " + FormattedMessages.getColoredTeamName(newTeam));
 			return nothing;
 		}
@@ -160,7 +160,7 @@ public class MhTeamToolsCompleter implements TabCompleter {
 			ManhuntTeam theTeam = checkTeamOption(sender, teamName);
 			if(theTeam == null) return nothing;
 			String teamText = FormattedMessages.getColoredTeamName(theTeam);
-			TeamsManager.deleteTeam(teamName);
+			TeamManager.deleteTeam(teamName);
 			FormattedMessages.sendColoredMessage(sender, MessageType.NORMAL, "Deleted team " + teamText);
 			return nothing;
 		}
@@ -170,13 +170,13 @@ public class MhTeamToolsCompleter implements TabCompleter {
 		}
 		
 		if(forTheCompleter && matchesPattern(matcher, s, patternDeleteTeamStart)) {
-			return TeamsManager.getAllTeamsNames();
+			return TeamManager.getAllTeamsNames();
 		}
 		
 		// configure
 		
 		if(forTheCompleter && matchesPattern(matcher, s, patternConfigureTeamStart)) { // || matchesPattern(matcher2, removeLastWord(s), patternConfigureTeamInPrgr)
-			return TeamsManager.getAllTeamsNames();
+			return TeamManager.getAllTeamsNames();
 		}
 		
 		if(forTheCompleter && matchesPattern(matcher, s, patternConfigureTeamWNameStart)) { // || matchesPattern(matcher2, removeLastWord(s), patternConfigureTeamWNameInPrgr)
@@ -195,7 +195,7 @@ public class MhTeamToolsCompleter implements TabCompleter {
 		}
 		
 		if(forTheCompleter && matchesPattern(matcher, s, patternConfigureTeamTrackOrUntrackTeamStart)) { // || matchesPattern(matcher2, removeLastWord(s), patternConfigureTeamTrackOrUntrackTeamInPrgr)
-			return TeamsManager.getAllTeamsNames();
+			return TeamManager.getAllTeamsNames();
 		}
 		
 		//               --------------------------------- EXECUTORS ------------------------------------ 
@@ -326,8 +326,8 @@ public class MhTeamToolsCompleter implements TabCompleter {
 		System.out.println(patternBooleanWrongConfigureTeam.matcher(str).matches());
 		
 		MhTeamToolsCompleter instance = new MhTeamToolsCompleter();
-		TeamsManager.createTeam(new ManhuntTeam("a a"));
-		TeamsManager.createTeam(new ManhuntTeam("b b"));
+		TeamManager.createTeam(new ManhuntTeam("a a"));
+		TeamManager.createTeam(new ManhuntTeam("b b"));
 		System.out.println(instance.onTabComplete(null, null, null, new String[] {str}));
 		
 //		Pattern lastBrackededWord = Pattern.compile("(?:[^\"])*(\"[^\"]*\"?)$");

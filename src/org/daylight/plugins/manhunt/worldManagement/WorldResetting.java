@@ -23,13 +23,14 @@ import org.daylight.plugins.manhunt.config.ConfigData;
 import org.daylight.plugins.manhunt.data.Lines;
 import org.daylight.plugins.manhunt.main.Main;
 import org.daylight.plugins.manhunt.util.OsDependent;
-import org.daylight.plugins.manhunt.util.OsType;
+import org.daylight.plugins.manhunt.util.OsDependent.OsType;
 
 public class WorldResetting {
+	@Deprecated(forRemoval = true)
 	public static void resetWorld(CommandSender sender, String[] args) {
 		if(sender instanceof ConsoleCommandSender || (sender instanceof Player && ((Player) sender).isOp())) {
 			if(!OsDependent.checkSystemSupported(sender, OsType.WINDOWS)) return;
-			if(!ConfigData.allowWorldResetting) {
+			if(false) { // !ConfigData.allowWorldResetting) {
 				sender.sendMessage(ChatColor.RED + Lines.featureDisabledByConfig);
 				return;
 			}
@@ -39,7 +40,7 @@ public class WorldResetting {
 				return;
 			}
 			
-			boolean allow = !ConfigData.requireConfirmationForWorldResetting;
+			boolean allow = true; // !ConfigData.requireConfirmationForWorldResetting;
 			String usage = ChatColor.BOLD + "/resetworld confirm";
 			if(args.length==1 && !allow) {
 				if(args[0].equals("confirm")) {
@@ -92,7 +93,7 @@ public class WorldResetting {
 				e.printStackTrace();
 			}
 			
-			if(ConfigData.useHaltForWorldResettings) {
+			if(false) { // ConfigData.useHaltForWorldResettings) {
 				Runtime.getRuntime().halt(0);
 			}
 			else {

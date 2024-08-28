@@ -1,4 +1,4 @@
-package org.daylight.plugins.manhunt.structs;
+package org.daylight.plugins.manhunt.teams;
 
 import org.bukkit.Location;
 

@@ -18,8 +18,9 @@ import org.bukkit.event.player.PlayerPortalEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.PlayerInventory;
-import org.daylight.plugins.manhunt.structs.ManhuntPlayer;
-import org.daylight.plugins.manhunt.structs.ManhuntTeam;
+import org.daylight.plugins.manhunt.teams.ManhuntPlayer;
+import org.daylight.plugins.manhunt.teams.ManhuntTeam;
+import org.daylight.plugins.manhunt.teams.TeamManager;
 import org.daylight.plugins.manhunt.util.projectspecific.FormattedMessages;
 
 public class CompassUpdating {
@@ -36,7 +37,7 @@ public class CompassUpdating {
 	}
 	
 	public static void updateBecauseATrackerAppeared(Player tracker, boolean compassInHandBypass) {
-		ManhuntTeam ownTeam = TeamsManager.getTeamByPlayerNickname(tracker.getName());
+		ManhuntTeam ownTeam = TeamManager.getTeamByPlayerNickname(tracker.getName());
 		if(ownTeam == null || !ownTeam.canUseTracking()) return;
 		for(ManhuntTeam team : ownTeam.getListTrackingOtherTeams()) {
 			for(ManhuntPlayer trackedMp : team.getPlayers()) {
@@ -53,7 +54,7 @@ public class CompassUpdating {
 	}
 	
 	public static void updateOnMovement(Player p, Location newLocation, Player bypassForPlayer, boolean compassInHandBypass) {
-		ManhuntTeam ownTeam = TeamsManager.getTeamByPlayerNickname(p.getName());
+		ManhuntTeam ownTeam = TeamManager.getTeamByPlayerNickname(p.getName());
 		if(ownTeam == null || !ownTeam.canBeTracked()) return;
 		ManhuntPlayer mp = ownTeam.getPlayer(p.getName());
 		Environment env = newLocation.getWorld().getEnvironment();
@@ -111,7 +112,7 @@ public class CompassUpdating {
 	}
 	
 	public static void checkHotbarScrollCompassMessage(PlayerItemHeldEvent e) {
-		ManhuntTeam ownTeam = TeamsManager.getTeamByPlayerNickname(e.getPlayer().getName());
+		ManhuntTeam ownTeam = TeamManager.getTeamByPlayerNickname(e.getPlayer().getName());
 		if(ownTeam == null || !ownTeam.canUseTracking()) return;
 		
 		PlayerInventory inv = e.getPlayer().getInventory();
@@ -139,14 +140,14 @@ public class CompassUpdating {
 	}
 	
 	public static void onPortalEvent(PlayerPortalEvent e) {
-		ManhuntTeam ownTeam = TeamsManager.getTeamByPlayerNickname(e.getPlayer().getName());
+		ManhuntTeam ownTeam = TeamManager.getTeamByPlayerNickname(e.getPlayer().getName());
 		if(ownTeam == null || (!ownTeam.canUseTracking() && !ownTeam.canBeTracked())) return;
 //		log(e.getPlayer().getLocation() + " " + e.getFrom() + " " + e.getTo());
 		CompassUtils.updatePositionsInATick(e.getPlayer(), ownTeam, true);
 	}
 	
 	public static void onPlayerDeath(PlayerDeathEvent e) {
-		ManhuntTeam ownTeam = TeamsManager.getTeamByPlayerNickname(e.getEntity().getName());
+		ManhuntTeam ownTeam = TeamManager.getTeamByPlayerNickname(e.getEntity().getName());
 		if(ownTeam == null || !ownTeam.canUseTracking()) return;
 		for (Iterator<ItemStack> it = e.getDrops().iterator(); it.hasNext(); ) {
 		    ItemStack is = it.next();
@@ -155,7 +156,7 @@ public class CompassUpdating {
 	}
 	
 	public static void onPlayerRespawn(PlayerRespawnEvent e) {
-		ManhuntTeam ownTeam = TeamsManager.getTeamByPlayerNickname(e.getPlayer().getName());
+		ManhuntTeam ownTeam = TeamManager.getTeamByPlayerNickname(e.getPlayer().getName());
 		if(ownTeam == null || !ownTeam.canUseTracking()) return;
 		CompassUtils.giveCompass(e.getPlayer());
 		CompassUtils.updatePositionsInATick(e.getPlayer(), ownTeam, true);

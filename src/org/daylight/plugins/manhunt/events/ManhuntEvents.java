@@ -1,9 +1,10 @@
 package org.daylight.plugins.manhunt.events;
 
-import static org.daylight.plugins.manhunt.data.References.Frozen;
-import static org.daylight.plugins.manhunt.data.References.FrozenLocs;
 import static org.daylight.plugins.manhunt.util.SimpleLogger.debug;
 import static org.daylight.plugins.manhunt.util.SimpleLogger.log;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
@@ -13,21 +14,27 @@ import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.event.player.PlayerPortalEvent;
 import org.daylight.plugins.manhunt.compass.CompassUpdating;
-import org.daylight.plugins.manhunt.compass.TeamsManager;
-import org.daylight.plugins.manhunt.structs.ManhuntTeam;
+import org.daylight.plugins.manhunt.teams.ManhuntTeam;
+import org.daylight.plugins.manhunt.teams.TeamManager;
 
 public class ManhuntEvents implements Listener {
 	@EventHandler
 	public void Move(PlayerMoveEvent e) {
 		String pName = e.getPlayer().getName();
-		ManhuntTeam team = TeamsManager.getTeamByPlayerNickname(pName);
+		ManhuntTeam team = TeamManager.getTeamByPlayerNickname(pName);
 		if(team == null) return;
 		
 		// Compass functionality
 		if(team.canBeTracked()) CompassUpdating.updateOnMovement(e.getPlayer(), e.getTo());
 		// Frozen players functuonality
-		if(Frozen.contains(pName)) cancelMovement(e);
+		if(FrozenEvents.FrozenPlayersNicknames.contains(pName)) cancelMovement(e);
+	}
+	
+	@EventHandler
+	public void PlayerPortalEvent(PlayerPortalEvent e) {
+		CompassUpdating.onPortalEvent(e);
 	}
 	
 	@EventHandler
@@ -55,10 +62,10 @@ public class ManhuntEvents implements Listener {
 		Location loc = e.getTo().clone();
 		p.setAllowFlight(true);
 		p.setFlying(true);
-		loc.setWorld(FrozenLocs.get(p).getWorld());
-		loc.setX(FrozenLocs.get(p).getX());
-		loc.setY(FrozenLocs.get(p).getY());
-		loc.setZ(FrozenLocs.get(p).getZ());
+		loc.setWorld(FrozenEvents.FrozenPlayersSavedLocations.get(p).getWorld());
+		loc.setX(FrozenEvents.FrozenPlayersSavedLocations.get(p).getX());
+		loc.setY(FrozenEvents.FrozenPlayersSavedLocations.get(p).getY());
+		loc.setZ(FrozenEvents.FrozenPlayersSavedLocations.get(p).getZ());
 		p.teleport(loc);
 	}
 }

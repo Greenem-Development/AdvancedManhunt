@@ -7,13 +7,12 @@ import java.util.Map;
 
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
-import org.daylight.plugins.manhunt.util.OsType;
+import org.daylight.plugins.manhunt.config.ConfigWatcher;
+import org.daylight.plugins.manhunt.util.OsDependent.OsType;
 
 public class References {
-	public static ArrayList<String> Frozen = new ArrayList<>();
-	public static Map <Player, Location> FrozenLocs = new HashMap<>();
-	public static Map <Player, Integer> FrozenAirLevel = new HashMap<>();
-
+	public static ConfigWatcher configWatcher;
+	
 	public static File serverDirectory;
 	public static File configsDirectory;
 	public static File pluginConfigDirectory;

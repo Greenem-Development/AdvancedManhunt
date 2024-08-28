@@ -4,8 +4,8 @@ import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
-import org.daylight.plugins.manhunt.compass.TeamsManager;
-import org.daylight.plugins.manhunt.structs.ManhuntTeam;
+import org.daylight.plugins.manhunt.teams.ManhuntTeam;
+import org.daylight.plugins.manhunt.teams.TeamManager;
 
 public class FormattedMessages {
 	public enum MessageType {
@@ -84,7 +84,7 @@ public class FormattedMessages {
 	}
 	
 	public static String getColoredTeamName(String teamName) {
-		ManhuntTeam team = TeamsManager.getTeamByName(teamName);
+		ManhuntTeam team = TeamManager.getTeamByName(teamName);
 		if(team == null) return null;
 		return getColoredTeamName(team);
 	}

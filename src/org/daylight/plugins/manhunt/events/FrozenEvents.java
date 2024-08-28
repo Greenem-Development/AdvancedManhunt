@@ -1,10 +1,13 @@
 package org.daylight.plugins.manhunt.events;
 
-import static org.daylight.plugins.manhunt.data.References.Frozen;
-import static org.daylight.plugins.manhunt.data.References.FrozenAirLevel;
 import static org.daylight.plugins.manhunt.util.SimpleLogger.debug;
 import static org.daylight.plugins.manhunt.util.SimpleLogger.log;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.bukkit.Location;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
@@ -29,22 +32,26 @@ import org.bukkit.event.player.PlayerPickupArrowEvent;
 import org.bukkit.event.player.PlayerToggleFlightEvent;
 
 public class FrozenEvents implements Listener {
+	public static ArrayList<String> FrozenPlayersNicknames = new ArrayList<>();
+	public static Map <Player, Location> FrozenPlayersSavedLocations = new HashMap<>();
+	public static Map <Player, Integer> FrozenAirLevel = new HashMap<>();
+	
 	@EventHandler(priority=EventPriority.LOW)
 	public void flightAttempt(PlayerToggleFlightEvent e) {
-		if(Frozen.contains(e.getPlayer().getName())) e.setCancelled(true);
+		if(FrozenPlayersNicknames.contains(e.getPlayer().getName())) e.setCancelled(true);
 	}
 	
 	@EventHandler
     public void AuthAttacking(EntityDamageByEntityEvent e) {
 		if (e.getDamager() instanceof Player) {
 			Player Damager = (Player) e.getDamager();
-			if (Frozen.contains(Damager.getName()) || Frozen.contains(e.getEntity().getName())) {
+			if (FrozenPlayersNicknames.contains(Damager.getName()) || FrozenPlayersNicknames.contains(e.getEntity().getName())) {
 				e.setCancelled(true);
 			}
 		}
 		if (e.getDamager() instanceof Projectile) {
             if (((Projectile) e.getDamager()).getShooter() instanceof Player) {
-            	if (Frozen.contains(((Player) ((Projectile) e.getDamager()).getShooter()).getName()) || Frozen.contains(e.getEntity().getName())) {
+            	if (FrozenPlayersNicknames.contains(((Player) ((Projectile) e.getDamager()).getShooter()).getName()) || FrozenPlayersNicknames.contains(e.getEntity().getName())) {
     				e.setCancelled(true);
     			}
     		}
@@ -53,7 +60,7 @@ public class FrozenEvents implements Listener {
 	
 	@EventHandler
     public void AuthInteracting(PlayerInteractEntityEvent e) {
-		if(Frozen.contains(e.getPlayer().getName())) {
+		if(FrozenPlayersNicknames.contains(e.getPlayer().getName())) {
 			e.setCancelled(true);
         }
 	}
@@ -63,7 +70,7 @@ public class FrozenEvents implements Listener {
 		if(e.getTarget() instanceof Player) {
 			Player p = (Player) e.getTarget();
 	        if (e.getTarget() instanceof LivingEntity){
-	            if(Frozen.contains(p.getName())) {
+	            if(FrozenPlayersNicknames.contains(p.getName())) {
 	            	e.setCancelled(true);
 	            }
 	        }
@@ -71,7 +78,7 @@ public class FrozenEvents implements Listener {
 	}
 	
 	public void PlayerPickupItemEvent(PlayerPickupArrowEvent e) { //cancelling picking an arrow up
-		if(Frozen.contains(e.getPlayer().getName())) {
+		if(FrozenPlayersNicknames.contains(e.getPlayer().getName())) {
 			e.setCancelled(true);
 		}
 	}
@@ -79,7 +86,7 @@ public class FrozenEvents implements Listener {
 	@EventHandler
     public void onHungingBrake(HangingBreakByEntityEvent e) {
 		if(e.getRemover().getType() == EntityType.PLAYER){
-			if(Frozen.contains(e.getRemover().getName())) {
+			if(FrozenPlayersNicknames.contains(e.getRemover().getName())) {
 				e.setCancelled(true);
     		}
     	}
@@ -88,14 +95,14 @@ public class FrozenEvents implements Listener {
 	@EventHandler
 	public void PlayerDropItemEvent (PlayerDropItemEvent e) {
 		Player p = e.getPlayer();
-		if(Frozen.contains(p.getName())) {
+		if(FrozenPlayersNicknames.contains(p.getName())) {
 			e.setCancelled(true);
 		}
 	}
 	
 	public void PlayerHitsPlayerEvt(EntityDamageByEntityEvent e) {
 		if(e.getDamager() instanceof Player) {
-			if(Frozen.contains(e.getDamager().getName()) || Frozen.contains(e.getEntity().getName())) {
+			if(FrozenPlayersNicknames.contains(e.getDamager().getName()) || FrozenPlayersNicknames.contains(e.getEntity().getName())) {
 				e.setCancelled(true);
 			}
 		}
@@ -103,13 +110,13 @@ public class FrozenEvents implements Listener {
 	
 	@EventHandler
 	public void DisableArmorStandIntaract (PlayerInteractAtEntityEvent e) {
-		if(Frozen.contains(e.getPlayer().getName())) {
+		if(FrozenPlayersNicknames.contains(e.getPlayer().getName())) {
 			if(e.getRightClicked() instanceof ArmorStand) {
 				e.setCancelled(true);
 			}
 		}
 		if(e.getRightClicked() instanceof ArmorStand) {
-			if(Frozen.contains(e.getPlayer().getName())) {
+			if(FrozenPlayersNicknames.contains(e.getPlayer().getName())) {
 				e.setCancelled(true);
 			}
 		}
@@ -119,7 +126,7 @@ public class FrozenEvents implements Listener {
 	public void DamageRulesManager(EntityDamageEvent e) {
 		//log.info(e.getEntity().getType() + "");
 		if (e.getEntity().getType().toString().equals("PLAYER")){
-			if(Frozen.contains(((Player) e.getEntity()).getName())) {
+			if(FrozenPlayersNicknames.contains(((Player) e.getEntity()).getName())) {
 				e.setCancelled(true);
 			}
 		}
@@ -127,14 +134,14 @@ public class FrozenEvents implements Listener {
 	
 	@EventHandler
 	public void BlockPlaceEvent(BlockPlaceEvent e) {
-		if(Frozen.contains(e.getPlayer().getName())){
+		if(FrozenPlayersNicknames.contains(e.getPlayer().getName())){
 			e.setCancelled(true);
 		}
 	}
 	
 	@EventHandler
 	public void BlockBreakEvent(BlockBreakEvent e) {
-		if(Frozen.contains(e.getPlayer().getName())){
+		if(FrozenPlayersNicknames.contains(e.getPlayer().getName())){
 			e.setCancelled(true);
 		}
 	}
@@ -144,7 +151,7 @@ public class FrozenEvents implements Listener {
 		Player p = e.getPlayer();
 //        Block b = e.getClickedBlock();
         //if(e.getClickedBlock() != null) log.info(e.getClickedBlock().getType().toString());
-        if(Frozen.contains(p.getName())) {
+        if(FrozenPlayersNicknames.contains(p.getName())) {
         	e.setCancelled(true);
         }
 	}
@@ -152,7 +159,7 @@ public class FrozenEvents implements Listener {
 	@EventHandler
 	public void FoodLevelChangeEvent(FoodLevelChangeEvent e) {
 		if(e.getEntity() instanceof Player) {
-			if(Frozen.contains(((Player) e.getEntity()).getName())){
+			if(FrozenPlayersNicknames.contains(((Player) e.getEntity()).getName())){
 				e.setCancelled(true);
 			}
 		}
@@ -162,7 +169,7 @@ public class FrozenEvents implements Listener {
 	public void EntityAirChangeEvent(EntityAirChangeEvent e) {
 		if(e.getEntity() instanceof Player) {
 			Player p = (Player) e.getEntity();
-			if(Frozen.contains(((Player) e.getEntity()).getName())) {
+			if(FrozenPlayersNicknames.contains(((Player) e.getEntity()).getName())) {
 				if(!FrozenAirLevel.containsKey(p)) FrozenAirLevel.put(p, p.getRemainingAir());
 				if(e.getAmount()<FrozenAirLevel.get(p)) {
 					//e.setAmount(-300);

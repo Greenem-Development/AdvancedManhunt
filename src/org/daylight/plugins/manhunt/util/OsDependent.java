@@ -6,6 +6,11 @@ import org.daylight.plugins.manhunt.data.Lines;
 import org.daylight.plugins.manhunt.data.References;
 
 public class OsDependent {
+	public enum OsType {
+		WINDOWS,
+		LINUX
+	}
+	
 	public static OsType getSystemType() {
 //		System.getProperties().list(System.out);
 		String os = System.getProperty("os.name");

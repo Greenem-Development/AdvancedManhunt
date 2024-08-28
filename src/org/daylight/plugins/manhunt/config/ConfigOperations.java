@@ -22,38 +22,35 @@ public class ConfigOperations {
 	
 	public static void loadConfig() {
 		File f = new File(pluginConfigDirectory, Lines.mainConfigName);
+		@SuppressWarnings("unused")
+		boolean fileExisted = f.exists(); // could improve
+		
 		f.getParentFile().mkdirs();
 		YamlConfiguration c = YamlConfiguration.loadConfiguration(f);
 		YamlConfiguration cOld = YamlConfiguration.loadConfiguration(f);
-		String currentKey = null;
-		try {
-			currentKey = "settings.warnings.disable-no-existing-start-file-warning";
-			ConfigData.disableNoExistingStartFileWarning = (boolean) loadKey(c, currentKey, null, null);
-			currentKey = "settings.world-resetting.launch-server-script-name";
-			References.runFileString = (String) loadKey(c, currentKey, null, null); //() -> { checkStartScript(); }, () -> { checkStartScript(); });
-			currentKey = "settings.commands.allow-gm-command-for-ops";
-			ConfigData.allowGmCommandForOps = (boolean) loadKey(c, currentKey, null, null);
-			currentKey = "settings.commands.allow-heal-command-for-ops";
-			ConfigData.allowHealCommandForOps = (boolean) loadKey(c, currentKey, null, null);
-			currentKey = "settings.world-resetting.allow-ops-use-world-resetting";
-			ConfigData.allowWorldResetting = (boolean) loadKey(c, currentKey, null, null);
-			currentKey = "settings.world-resetting.require-confirmation-for-world-resetting"; // TODO
-			ConfigData.requireConfirmationForWorldResetting = (boolean) loadKey(c, currentKey, null, null);
-			currentKey = "settings.world-resetting.use-halt-for-instant-server-stopping";
-			ConfigData.useHaltForWorldResettings = (boolean) loadKey(c, currentKey, null, null);
-			currentKey = "settings.game.delay-for-speedrunner-on-start-in-milliseconds";
-			ConfigData.speedrunnerDelayMilliseconds = (int) loadKey(c, currentKey, null, null);
-			currentKey = "settings.game.clear-items-on-start";
-			ConfigData.clearItemsOnStart = (boolean) loadKey(c, currentKey, null, null);
-			
-			//"java-path-to-start-java-middle-script" // maybe later
-		} catch (Throwable t) {
-			log("Error while reading \"" + currentKey + "\" from the config");
+		
+		String currentVersion = "1.7";
+		String configVersion = null;
+		
+		ConfigData.speedrunnerDelayMilliseconds = (int) loadKey(c, "settings.game.delay-for-speedrunner-on-start-in-milliseconds",
+				ConfigData.speedrunnerDelayMilliseconds);
+		ConfigData.clearItemsOnStart = (boolean) loadKey(c, "settings.game.on-start.clear-items",
+				ConfigData.clearItemsOnStart);
+		ConfigData.healOnStart = (boolean) loadKey(c, "settings.game.on-start.heal-players",
+				ConfigData.healOnStart);
+		
+		configVersion = (String) loadKey(c, "internal.config-version", null);
+		
+		if(configVersion != null) {
+//			if(configVersion.equals("1.7")) updateConfig_1_7_to_1_8(c); // in the future
+		} else {
+			loadKey(c, "internal.config-version", currentVersion);
 		}
+		
 		saveConfigIfHasChanges(c, cOld, f);
 	}
 	
-	public static Object getDefaultValue(String key) {
+	/*public static Object getDefaultValue(String key) {
 		switch (key) {
 			case "settings.world-resetting.launch-server-script-name": return "Run.bat";
 			case "settings.commands.allow-gm-command-for-ops": return true;
@@ -67,33 +64,42 @@ public class ConfigOperations {
 			default:
 				return "UNDEFINED_CONFIG_VALUE";
 		}
+	}*/
+	
+	private static Object loadKey(YamlConfiguration c, String currentKey, Object defaultValue) {
+		return loadKey(c, currentKey, defaultValue, null, null);
 	}
 	
-	private static Object loadKey(YamlConfiguration c, String currentKey, Runnable ifExists, Runnable ifNotExists) {
-		Object currentValue = c.get(currentKey);
-		Object def = null;
-		Object returnValue = null;
-		if (currentValue == null) {
-			def = getDefaultValue(currentKey);
-			c.set(currentKey, def);
-			returnValue = def;
-			if(ifExists!=null) {
-				ifExists.run();
-			}
-		} else {
-			try {
-				returnValue = currentValue;
-				if(ifNotExists!=null) {
-					ifNotExists.run();
+	private static Object loadKey(YamlConfiguration c, String currentKey, Object defaultValue, Runnable ifExists, Runnable ifNotExists) {
+		try {
+			Object currentValue = c.get(currentKey);
+//			Object def = null;
+			Object returnValue = null;
+			if (currentValue == null) {
+//				def = getDefaultValue(currentKey);
+				c.set(currentKey, defaultValue);
+				returnValue = defaultValue;
+				if(ifExists!=null) {
+					ifExists.run();
 				}
-			} catch (ClassCastException e) {
-				logCastEx(currentKey);
+			} else {
+				try {
+					returnValue = currentValue;
+					if(ifNotExists!=null) {
+						ifNotExists.run();
+					}
+				} catch (ClassCastException e) {
+					logCastEx(currentKey);
+				}
 			}
+//			if(currentKey=="settings.world-resetting.launch-server-script-name") {
+//				checkStartScript((String) returnValue);
+//			}
+			return returnValue;
+		} catch (Throwable t) {
+			log("Error while reading \"" + currentKey + "\" from the config");
+			return defaultValue;
 		}
-		if(currentKey=="settings.world-resetting.launch-server-script-name") {
-			checkStartScript((String) returnValue);
-		}
-		return returnValue;
 	}
 	
 	/***
@@ -122,14 +128,14 @@ public class ConfigOperations {
 		return hasChanges;
 	}
 	
-	private static void checkStartScript(String runFileString) {
+	/*private static void checkStartScript(String runFileString) {
 		if(ConfigData.disableNoExistingStartFileWarning) return;
 		if(!new File(serverDirectory, runFileString).exists()) {
 			String noExistingStartFileWarning = ChatColor.RED + "You haven't specified your run script file name in the config! "
 					+ "(for world reseting, but other things are fine)";
 			log(noExistingStartFileWarning);
 		}
-	}
+	}*/
 	
 	public static void logCastEx(String currentKey) {
 		log("Wrong value type for \"" + currentKey + "\" in the config");
