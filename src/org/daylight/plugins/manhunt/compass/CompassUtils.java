@@ -2,7 +2,6 @@ package org.daylight.plugins.manhunt.compass;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 
 import org.bukkit.Bukkit;
@@ -13,7 +12,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.CompassMeta;
 import org.daylight.plugins.manhunt.main.Main;
-import org.daylight.plugins.manhunt.models.ManhuntTeam;
+import org.daylight.plugins.manhunt.structs.ManhuntTeam;
 import org.daylight.plugins.manhunt.util.Stash;
 import org.daylight.plugins.manhunt.util.projectspecific.nbt.ManhuntItems;
 

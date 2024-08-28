@@ -1,4 +1,4 @@
-package org.daylight.plugins.manhunt.models;
+package org.daylight.plugins.manhunt.structs;
 
 import org.bukkit.Location;
 
@@ -7,7 +7,6 @@ public class ManhuntPlayer {
 	private Location lastOverworldLocation = null;
 	private Location lastNetherLocation = null;
 	private Location lastEndLocation = null;
-	private ManhuntTeam compassTargetTeam = null;
 	private ManhuntTeam ownTeam = null;
 	
 	public ManhuntPlayer(String nickname) {
@@ -49,13 +48,5 @@ public class ManhuntPlayer {
 	
 	public void setLastEndLocation(Location lastEndLocation) {
 		this.lastEndLocation = lastEndLocation;
-	}
-
-	public ManhuntTeam getCompassTargetTeam() {
-		return compassTargetTeam;
-	}
-
-	public void setCompassTargetTeam(ManhuntTeam compassTargetTeam) {
-		this.compassTargetTeam = compassTargetTeam;
 	}
 }

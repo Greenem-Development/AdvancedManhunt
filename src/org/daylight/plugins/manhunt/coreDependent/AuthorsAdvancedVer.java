@@ -6,7 +6,10 @@ import org.bukkit.command.CommandSender;
 import net.md_5.bungee.api.chat.ClickEvent;
 import net.md_5.bungee.api.chat.TextComponent;
 
-public class NonBukkit {
+/**
+ * Will cause NoClassDefFoundError on Bukkit
+ */
+public class AuthorsAdvancedVer {
 	public static void authors(CommandSender sender) {
 //        String discordLinkText = "a";
         String curseforgeLinkText = "https://www.curseforge.com/minecraft/bukkit-plugins/advanced-manhunt";

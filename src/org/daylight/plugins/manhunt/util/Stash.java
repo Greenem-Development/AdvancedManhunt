@@ -1,7 +1,5 @@
 package org.daylight.plugins.manhunt.util;
 
-import static org.daylight.plugins.manhunt.data.References.Hunters;
-import static org.daylight.plugins.manhunt.data.References.Speedrunners;
 import static org.daylight.plugins.manhunt.util.SimpleLogger.debug;
 import static org.daylight.plugins.manhunt.util.SimpleLogger.log;
 
@@ -11,7 +9,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.daylight.plugins.manhunt.commands.ExtraCommands;
 
 public class Stash {
 	public static void AddItemStack(Player p, ItemStack ItemStack, int slot) { // can be better, change this later
@@ -50,34 +47,5 @@ public class Stash {
 			return false;
 		}
 		return true;
-	}
-	
-	public void healTests() {
-		Speedrunners.add("Greenem");
-		Hunters.add("MayX");
-		//Main.Hunters.add("Dismov");
-		ExtraCommands.HealCommand(null, null, "Greenem", new String[]{});
-		log("-----");
-		ExtraCommands.HealCommand(null, null, "Greenem", new String[]{"Greenem"});
-		log("-----");
-		ExtraCommands.HealCommand(null, null, "Greenem", new String[]{"MayX"});
-		log("-----");
-		ExtraCommands.HealCommand(null, null, "Greenem", new String[]{"Dismov"});
-		log("----------------------------------------------");
-		ExtraCommands.HealCommand(null, null, "MayX", new String[]{});
-		log("-----");
-		ExtraCommands.HealCommand(null, null, "MayX", new String[]{"MayX"});
-		log("-----");
-		ExtraCommands.HealCommand(null, null, "MayX", new String[]{"Greenem"});
-		log("-----");
-		ExtraCommands.HealCommand(null, null, "MayX", new String[]{"Dismov"});
-		log("----------------------------------------------");
-		ExtraCommands.HealCommand(null, null, "Dismov", new String[]{});
-		log("-----");
-		ExtraCommands.HealCommand(null, null, "Dismov", new String[]{"Dismov"});
-		log("-----");
-		ExtraCommands.HealCommand(null, null, "Dismov", new String[]{"Greenem"});
-		log("-----");
-		ExtraCommands.HealCommand(null, null, "Dismov", new String[]{"MayX"});
 	}
 }

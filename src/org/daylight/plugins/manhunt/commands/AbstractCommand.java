@@ -31,6 +31,22 @@ public class AbstractCommand {
 	
 	public boolean lessInfoLotsOfPlayers = false;
 	
+	public enum AdditionalCommandActionType {
+		SELF,
+		OTHER_PLAYER,
+		REMAINING_PLAYERS,
+		ALL_PLAYERS
+	}
+	
+	public enum CommandActionType {
+		GM,
+		HEAL,
+		MAKE_HUNTER,
+		MAKE_SPEEDRUNNER,
+		MAKE_NOROLE,
+		MHPROBLEMS
+	}
+	
 	public void completeInitialisation() {
 		if(targetName!=null) {
 			targetPlayer = Bukkit.getPlayerExact(targetName);

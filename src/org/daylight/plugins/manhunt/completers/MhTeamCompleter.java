@@ -1,13 +1,10 @@
 package org.daylight.plugins.manhunt.completers;
 
-import static org.daylight.plugins.manhunt.data.References.Hunters;
-import static org.daylight.plugins.manhunt.data.References.Speedrunners;
 import static org.daylight.plugins.manhunt.util.SimpleLogger.debug;
 import static org.daylight.plugins.manhunt.util.SimpleLogger.log;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -17,7 +14,6 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 import org.bukkit.entity.Player;
 import org.daylight.plugins.manhunt.compass.TeamsManager;
-import org.daylight.plugins.manhunt.models.ManhuntTeam;
 
 public class MhTeamCompleter implements TabCompleter {
 	public static boolean check(String s1, String s2) {

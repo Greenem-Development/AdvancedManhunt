@@ -5,7 +5,7 @@ import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.daylight.plugins.manhunt.compass.TeamsManager;
-import org.daylight.plugins.manhunt.models.ManhuntTeam;
+import org.daylight.plugins.manhunt.structs.ManhuntTeam;
 import org.daylight.plugins.manhunt.util.projectspecific.FormattedMessages;
 
 public class ManhuntItems {

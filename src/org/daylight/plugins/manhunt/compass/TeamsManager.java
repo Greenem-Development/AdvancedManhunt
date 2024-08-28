@@ -4,17 +4,13 @@ import static org.daylight.plugins.manhunt.util.SimpleLogger.debug;
 import static org.daylight.plugins.manhunt.util.SimpleLogger.log;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.daylight.plugins.manhunt.completers.MhTeamCompleter;
-import org.daylight.plugins.manhunt.completers.util.CompleterUtils;
-import org.daylight.plugins.manhunt.models.ManhuntPlayer;
-import org.daylight.plugins.manhunt.models.ManhuntTeam;
+import org.daylight.plugins.manhunt.structs.ManhuntPlayer;
+import org.daylight.plugins.manhunt.structs.ManhuntTeam;
 import org.daylight.plugins.manhunt.util.projectspecific.FormattedMessages;
 
 public class TeamsManager {

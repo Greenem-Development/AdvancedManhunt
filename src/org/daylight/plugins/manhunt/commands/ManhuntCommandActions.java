@@ -2,13 +2,9 @@ package org.daylight.plugins.manhunt.commands;
 
 import static org.daylight.plugins.manhunt.data.References.Frozen;
 import static org.daylight.plugins.manhunt.data.References.FrozenLocs;
-import static org.daylight.plugins.manhunt.data.References.Hunters;
-import static org.daylight.plugins.manhunt.data.References.HuntersPortalFrom;
-import static org.daylight.plugins.manhunt.data.References.HuntersPortalTo;
-import static org.daylight.plugins.manhunt.data.References.PortalEndTo;
-import static org.daylight.plugins.manhunt.data.References.PortalFrom;
-import static org.daylight.plugins.manhunt.data.References.PortalTo;
-import static org.daylight.plugins.manhunt.data.References.Speedrunners;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -18,34 +14,19 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.daylight.plugins.manhunt.config.ConfigData;
 import org.daylight.plugins.manhunt.main.Main;
-import org.daylight.plugins.manhunt.util.Stash;
 
 public class ManhuntCommandActions {
-	public static void doNoRole(Player p, String pName) {
-		if(Hunters.contains(pName)) {
-			Hunters.remove(pName);
-		}
-		else if(Speedrunners.contains(pName)) {
-			Speedrunners.remove(pName);
-		}
-		if(PortalEndTo.containsKey(pName)) PortalEndTo.remove(pName);
-		if(PortalFrom.containsKey(pName)) PortalFrom.remove(pName);
-		if(PortalTo.containsKey(pName)) PortalTo.remove(pName);
-		if(HuntersPortalFrom.containsKey(pName)) HuntersPortalFrom.remove(pName);
-		if(HuntersPortalTo.containsKey(pName)) HuntersPortalTo.remove(pName);
-		if(p!=null) {
-			Stash.RemoveMaterial(p, Material.COMPASS);
-		}
-	}
-	
 	public static void mhStart(int delay) {
 		mhStart(delay, ConfigData.speedrunnerDelayMilliseconds);
 	}
 	
+	private static List<String> OLD_Hunters = new ArrayList<>();
+	private static List<String> OLD_Speedrunners = new ArrayList<>();
+	
 	@Deprecated
 	public static void mhStart(int delay, int speedrunnerDelay) { // TO REMAKE, THIS IS TOO BAD LOL
 		int delayInSecondsInt = (int) ConfigData.speedrunnerDelayMilliseconds/1000;
-		for(String speendrunner : Speedrunners) {
+		for(String speendrunner : OLD_Speedrunners) {
 			Player spPl = Bukkit.getPlayerExact(speendrunner);
 			if(spPl==null) continue;
 			spPl.setGameMode(GameMode.SURVIVAL);
@@ -65,7 +46,7 @@ public class ManhuntCommandActions {
 				Bukkit.getPlayerExact(speendrunner).sendMessage(ChatColor.YELLOW + "You have " + (float) ConfigData.speedrunnerDelayMilliseconds/1000 + " seconds to prepare");
 			}
 		}
-		for(String hunter: Hunters) {
+		for(String hunter: OLD_Hunters) {
 			Player pHunter = Bukkit.getPlayerExact(hunter);
 			if(pHunter==null) continue;
 			pHunter.setGameMode(GameMode.SURVIVAL);
@@ -95,7 +76,7 @@ public class ManhuntCommandActions {
 		Bukkit.getScheduler().scheduleSyncDelayedTask(Main.getInstance(), new Runnable() {
 			@Override
 			public void run() {
-				for(String speendrunner : Speedrunners) {
+				for(String speendrunner : OLD_Speedrunners) {
 					Frozen.remove(speendrunner);
 					Player spPl = Bukkit.getPlayerExact(speendrunner);
 					FrozenLocs.remove(spPl);
@@ -106,7 +87,7 @@ public class ManhuntCommandActions {
 						spPl.setAllowFlight(false);
 					}
 				}
-				for(String hunter: Hunters) {
+				for(String hunter: OLD_Hunters) {
 					Player pHunter = Bukkit.getPlayerExact(hunter);
 					//Frozen.add(hunter);
 					final Player theHunter = pHunter;

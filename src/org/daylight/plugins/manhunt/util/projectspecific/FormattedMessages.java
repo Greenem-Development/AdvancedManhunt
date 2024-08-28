@@ -5,7 +5,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.daylight.plugins.manhunt.compass.TeamsManager;
-import org.daylight.plugins.manhunt.models.ManhuntTeam;
+import org.daylight.plugins.manhunt.structs.ManhuntTeam;
 
 public class FormattedMessages {
 	public enum MessageType {

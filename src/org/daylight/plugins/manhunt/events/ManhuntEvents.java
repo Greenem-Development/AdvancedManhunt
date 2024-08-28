@@ -1,58 +1,54 @@
 package org.daylight.plugins.manhunt.events;
 
-import static org.daylight.plugins.manhunt.compass.CompassUpdating.getEnvironment;
 import static org.daylight.plugins.manhunt.data.References.Frozen;
 import static org.daylight.plugins.manhunt.data.References.FrozenLocs;
-import static org.daylight.plugins.manhunt.data.References.Hunters;
-import static org.daylight.plugins.manhunt.data.References.HuntersPortalEndFrom;
-import static org.daylight.plugins.manhunt.data.References.HuntersPortalEndTo;
-import static org.daylight.plugins.manhunt.data.References.HuntersPortalFrom;
-import static org.daylight.plugins.manhunt.data.References.HuntersPortalTo;
-import static org.daylight.plugins.manhunt.data.References.PortalEndFrom;
-import static org.daylight.plugins.manhunt.data.References.PortalEndTo;
-import static org.daylight.plugins.manhunt.data.References.PortalFrom;
-import static org.daylight.plugins.manhunt.data.References.PortalTo;
-import static org.daylight.plugins.manhunt.data.References.Speedrunners;
 import static org.daylight.plugins.manhunt.util.SimpleLogger.debug;
 import static org.daylight.plugins.manhunt.util.SimpleLogger.log;
 
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
 import org.bukkit.Location;
-import org.bukkit.Material;
-import org.bukkit.World.Environment;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
-import org.bukkit.event.player.PlayerPortalEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
-import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.CompassMeta;
-import org.daylight.plugins.manhunt.commands.UniversalCommands;
 import org.daylight.plugins.manhunt.compass.CompassUpdating;
-import org.daylight.plugins.manhunt.main.Main;
-import org.daylight.plugins.manhunt.util.Stash;
-import org.daylight.plugins.manhunt.util.projectspecific.nbt.ManhuntItems;
+import org.daylight.plugins.manhunt.compass.TeamsManager;
+import org.daylight.plugins.manhunt.structs.ManhuntTeam;
 
 public class ManhuntEvents implements Listener {
 	@EventHandler
 	public void Move(PlayerMoveEvent e) {
-//		log(e.getFrom().getX() + " " + e.getFrom().getZ() + " (" + e.getFrom().getWorld().getEnvironment().name() + ") -> " +
-//	e.getTo().getX() + " " + e.getTo().getZ() + " (" + e.getTo().getWorld().getEnvironment().name() + ")");
+		String pName = e.getPlayer().getName();
+		ManhuntTeam team = TeamsManager.getTeamByPlayerNickname(pName);
+		if(team == null) return;
 		
-		Player p = e.getPlayer();
-		String pName = p.getName();
-		if(Speedrunners.contains(pName) || Hunters.contains(pName)) CompassUpdating.findTarget();
-		
-		CompassUpdating.updateOnMovement(e.getPlayer(), e.getTo()); // new
-		if(Frozen.contains(p.getName())) {
-			cancelMovement(e);
-		}
+		// Compass functionality
+		if(team.canBeTracked()) CompassUpdating.updateOnMovement(e.getPlayer(), e.getTo());
+		// Frozen players functuonality
+		if(Frozen.contains(pName)) cancelMovement(e);
 	}
 	
+	@EventHandler
+	public void PlayerDies(PlayerDeathEvent e) {
+		CompassUpdating.onPlayerDeath(e);
+	}
+	
+	@EventHandler
+	public void Respawn(PlayerRespawnEvent e) {
+		CompassUpdating.onPlayerRespawn(e);
+	}
+	
+	@EventHandler
+	public void onScroll(PlayerItemHeldEvent e) {
+		CompassUpdating.checkHotbarScrollCompassMessage(e);
+	}
+	
+	/**
+	 * Cancel a move event for freezing the player
+	 * @param e The move event to cancel
+	 */
 	private static void cancelMovement(PlayerMoveEvent e) {
 		Player p = e.getPlayer();
 		if(!e.getFrom().getWorld().equals(e.getTo().getWorld())) return;
@@ -64,146 +60,5 @@ public class ManhuntEvents implements Listener {
 		loc.setY(FrozenLocs.get(p).getY());
 		loc.setZ(FrozenLocs.get(p).getZ());
 		p.teleport(loc);
-	}
-	
-	@EventHandler
-	public void PlayerPortalEvent (PlayerPortalEvent e) {
-		Player p = e.getPlayer();
-		String pName = p.getName();
-//		debug(e.getFrom());
-//		debug(e.getTo());
-//		debug(e.getPlayer().getLocation());
-		Bukkit.getScheduler().runTaskLater(Main.getInstance().plugin, new Runnable() {
-			@Override
-			public void run() {
-				if(Speedrunners.contains(pName)) {
-					if(getEnvironment(p.getLocation())==Environment.THE_END) {
-						PortalEndFrom.put(pName, e.getFrom());
-		//				debug(PortalEndFrom);
-						PortalEndTo.put(pName, p.getLocation());
-		//				debug(PortalEndTo);
-					}
-					else {
-						PortalFrom.put(pName, e.getFrom());
-						PortalTo.put(pName, p.getLocation());
-					}
-				}
-				if(Hunters.contains(pName)) {
-					if(getEnvironment(p.getLocation())==Environment.THE_END) {
-						HuntersPortalEndFrom.put(pName, e.getFrom());
-						HuntersPortalEndTo.put(pName, p.getLocation());
-					}
-					else {
-		//				HuntersPortalFrom.remove(pName);
-		//				HuntersPortalTo.remove(pName);
-						HuntersPortalFrom.put(pName, e.getFrom());
-						HuntersPortalTo.put(pName, p.getLocation());
-		//				debug(HuntersPortalTo.get(pName));
-					}
-				}
-			}
-		}, 1);
-		checkNetherCompassInHand(p, p.getLocation(), p.getInventory().getHeldItemSlot(), false, p.getInventory().getItemInOffHand());
-		Bukkit.getScheduler().runTaskLater(Main.getInstance().plugin, new Runnable() {
-			@Override
-			public void run() {
-//				CompassUpdating.findTarget(p.getName(), e.getTo());
-				debug(CompassUpdating.shortLocation(p.getLocation()));
-				debug(CompassUpdating.shortLocation(e.getPlayer().getLocation()));
-				debug(CompassUpdating.shortLocation(e.getTo()));
-				CompassUpdating.findTarget(p.getName(), p.getLocation());
-			}
-		}, 1);
-		
-		CompassUpdating.onPortalEvent(e); // new
-	}
-
-	@EventHandler
-	public void PlayerDies(PlayerDeathEvent e) {
-		Player p = e.getEntity();
-		String pName = p.getName();
-		if(PortalFrom.containsKey(pName) && PortalTo.containsKey(pName) && p.getWorld().getEnvironment().equals(Environment.NETHER)) {
-			Location from = PortalFrom.get(pName).clone();
-			PortalFrom.put(pName, PortalTo.get(pName));
-			PortalTo.put(pName, from);
-		}
-		if(Hunters.contains(pName)) {
-			clearCompassItems(e, p);
-		}
-		
-		CompassUpdating.onPlayerDeath(e); // new
-	}
-	
-	public static void clearCompassItems(PlayerDeathEvent e, Player p) {
-		p.getInventory().remove(Material.COMPASS); // not tested
-		for(int i = 0; i<p.getInventory().getSize(); i++) {
-			try {
-				if(e.getDrops().get(i).getType().equals(Material.COMPASS)) e.getDrops().remove(i); //TODO java.lang.IndexOutOfBoundsException: Index 8 out of bounds for length 8, 233 | Index 1 out of bounds for length 0
-			}
-			catch (IndexOutOfBoundsException e1) {
-				
-			}
-		}
-	}
-	
-	@EventHandler
-	public void Respawn(PlayerRespawnEvent e) {
-		Player p = e.getPlayer();
-		String nameP = p.getName();
-		if(Hunters.contains(nameP)) {
-			Stash.AddItemStack(p, ManhuntItems.createTrackingCompass(), 8);
-			CompassUpdating.findTarget();
-		}
-		
-		CompassUpdating.onPlayerRespawn(e); // new
-	}
-	
-	@EventHandler
-	public void onScroll(PlayerItemHeldEvent e) {
-		checkNetherCompassInHand(e.getPlayer(), e.getNewSlot());
-		CompassUpdating.checkHotbarScrollCompassMessage(e);
-	}
-	
-	public static void checkNetherCompassInHand(Player p, int slot) {
-		checkNetherCompassInHand(p, p.getLocation(), slot);
-	}
-	
-	public static void checkNetherCompassInHand(Player p, Location loc, int slot) {
-		checkNetherCompassInHand(p, loc, slot, true, null);
-	}
-	
-	public static void checkNetherCompassInHand(Player p, Location loc, int slot, boolean checkMeta, ItemStack is) {
-//		log.info("check");
-		if(!Hunters.contains(p.getName())) return;
-		if(loc.getWorld().getEnvironment().equals(Environment.THE_END) || loc.getWorld().getEnvironment().equals(Environment.NETHER)) {
-//			log.info("check2");
-			if(p.getInventory().getItem(slot)!=null) {
-//				log.info("check3");
-				ItemStack maybeCompass = p.getInventory().getItem(slot);
-				if(maybeCompass.getType().equals(Material.COMPASS)){
-//					log.info("check4");
-					boolean warn = false;
-					if(checkMeta) {
-						//log.info(e.getPlayer().getInventory().getItem(e.getNewSlot()).getItemMeta().getAttributeModifiers().containsKey(e)+ "");
-						CompassMeta meta = (CompassMeta) maybeCompass.getItemMeta();
-		    	  		if(meta.getLodestone() != null) {
-		    	  			//e.setCancelled(true);
-		    	  			warn = true;
-		    	  		}
-					}
-					else {
-						warn = true;
-					}
-					
-					if(is!=null) {
-						if(is.getType()==Material.COMPASS) warn = true;
-					}
-					
-					if(warn) {
-						p.sendMessage(ChatColor.RED + "Sorry, but the compass will not update while you are holding it in the Nether (or End)");
-					}
-				}
-			}
-		}
 	}
 }

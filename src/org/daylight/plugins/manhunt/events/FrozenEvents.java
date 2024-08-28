@@ -1,11 +1,10 @@
 package org.daylight.plugins.manhunt.events;
 
 import static org.daylight.plugins.manhunt.data.References.Frozen;
-import static org.daylight.plugins.manhunt.data.References.FrozenAir;
+import static org.daylight.plugins.manhunt.data.References.FrozenAirLevel;
 import static org.daylight.plugins.manhunt.util.SimpleLogger.debug;
 import static org.daylight.plugins.manhunt.util.SimpleLogger.log;
 
-import org.bukkit.block.Block;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.LivingEntity;
@@ -164,10 +163,10 @@ public class FrozenEvents implements Listener {
 		if(e.getEntity() instanceof Player) {
 			Player p = (Player) e.getEntity();
 			if(Frozen.contains(((Player) e.getEntity()).getName())) {
-				if(!FrozenAir.containsKey(p)) FrozenAir.put(p, p.getRemainingAir());
-				if(e.getAmount()<FrozenAir.get(p)) {
+				if(!FrozenAirLevel.containsKey(p)) FrozenAirLevel.put(p, p.getRemainingAir());
+				if(e.getAmount()<FrozenAirLevel.get(p)) {
 					//e.setAmount(-300);
-					e.setAmount(FrozenAir.get(p));
+					e.setAmount(FrozenAirLevel.get(p));
 				}
 			}
 		}

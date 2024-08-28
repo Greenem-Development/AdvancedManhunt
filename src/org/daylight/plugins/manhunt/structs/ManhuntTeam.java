@@ -1,4 +1,4 @@
-package org.daylight.plugins.manhunt.models;
+package org.daylight.plugins.manhunt.structs;
 
 import static org.daylight.plugins.manhunt.util.SimpleLogger.debug;
 import static org.daylight.plugins.manhunt.util.SimpleLogger.log;

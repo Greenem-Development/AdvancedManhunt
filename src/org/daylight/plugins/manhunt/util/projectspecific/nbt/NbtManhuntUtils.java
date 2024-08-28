@@ -2,7 +2,6 @@ package org.daylight.plugins.manhunt.util.projectspecific.nbt;
 
 import java.util.concurrent.atomic.AtomicReference;
 
-import org.bukkit.Material;
 import org.bukkit.inventory.ItemStack;
 
 import de.tr7zw.changeme.nbtapi.NBT;

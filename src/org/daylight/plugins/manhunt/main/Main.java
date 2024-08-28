@@ -1,14 +1,5 @@
 package org.daylight.plugins.manhunt.main;
 
-import static org.daylight.plugins.manhunt.data.References.Frozen;
-import static org.daylight.plugins.manhunt.data.References.FrozenLocs;
-import static org.daylight.plugins.manhunt.data.References.Hunters;
-import static org.daylight.plugins.manhunt.data.References.HuntersPortalFrom;
-import static org.daylight.plugins.manhunt.data.References.HuntersPortalTo;
-import static org.daylight.plugins.manhunt.data.References.PortalEndTo;
-import static org.daylight.plugins.manhunt.data.References.PortalFrom;
-import static org.daylight.plugins.manhunt.data.References.PortalTo;
-import static org.daylight.plugins.manhunt.data.References.Speedrunners;
 import static org.daylight.plugins.manhunt.data.References.configsDirectory;
 import static org.daylight.plugins.manhunt.data.References.pluginConfigDirectory;
 import static org.daylight.plugins.manhunt.data.References.serverDirectory;
@@ -22,26 +13,19 @@ import org.bukkit.event.Listener;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.Command;
-import org.bukkit.command.CommandException;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
-import org.bukkit.generator.ChunkGenerator;
-import org.bukkit.generator.ChunkGenerator.BiomeGrid;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.daylight.plugins.manhunt.commands.ExtraCommands;
 import org.daylight.plugins.manhunt.commands.ManhuntCommands;
 import org.daylight.plugins.manhunt.compass.TeamsManager;
-import org.daylight.plugins.manhunt.completers.MhGmCompleter;
 import org.daylight.plugins.manhunt.completers.MhProblemsCompleter;
-import org.daylight.plugins.manhunt.completers.MhRoleCompleter;
-import org.daylight.plugins.manhunt.completers.MhStartCompleter;
 import org.daylight.plugins.manhunt.completers.MhTeamCompleter;
 import org.daylight.plugins.manhunt.completers.MhTeamToolsCompleter;
-import org.daylight.plugins.manhunt.completers.plain.EmptyCompleter1Arg;
 import org.daylight.plugins.manhunt.completers.plain.EmptyCompleterNoArgs;
 import org.daylight.plugins.manhunt.config.ConfigOperations;
-import org.daylight.plugins.manhunt.coreDependent.NonBukkit;
+import org.daylight.plugins.manhunt.coreDependent.AuthorsAdvancedVer;
+import org.daylight.plugins.manhunt.coreDependent.AuthorsBaiscVer;
 import org.daylight.plugins.manhunt.data.References;
 import org.daylight.plugins.manhunt.events.FrozenEvents;
 import org.daylight.plugins.manhunt.events.ManhuntEvents;
@@ -66,10 +50,9 @@ public class Main extends JavaPlugin implements Listener {
 	        getPluginLoader().disablePlugin(this);
 	        return;
 	    }
-		log(ChatColor.GREEN + "Advanced Manhunt plugin has been enabled!");
-		initAll();
+		initEverything();
 		ConfigOperations.updateAndLoadConfig();
-		finishInit();
+		finishInitialization();
 		instance = this;
 	}
 	
@@ -85,51 +68,21 @@ public class Main extends JavaPlugin implements Listener {
 			p = (Player) sender;
 		} catch (ClassCastException e) {}
 		
-		if(cmd.getName().equalsIgnoreCase("gm")){
-			if(isSenderAPlayerOrConsole(sender)) {
-				ExtraCommands.GmCommand(sender, args);
-			}
-		}
-		else if(cmd.getName().equalsIgnoreCase("heal")){
-			if(isSenderAPlayerOrConsole(sender)) {
-				ExtraCommands.HealCommand(sender, p, null, args);
-			}
-		}
-		if(cmd.getName().equalsIgnoreCase("mhhunter")){
-			if(!isSenderAPlayerOrConsole(sender)) return true;
-			ManhuntCommands.hunterCommand(sender, args);
-		}
-		else if(cmd.getName().equalsIgnoreCase("mhspeedrunner")){
-			if(!isSenderAPlayerOrConsole(sender)) return true;
-			ManhuntCommands.speedrunnerCommand(sender, args);
-		}
-		else if(cmd.getName().equalsIgnoreCase("mhnorole")){
-			if(!isSenderAPlayerOrConsole(sender)) return true;
-			ManhuntCommands.noRoleCommand(sender, args);
-		}
-		else if(cmd.getName().equalsIgnoreCase("mhstart")){
-			if(!isSenderAPlayerOrConsole(sender)) return true;
-			ManhuntCommands.startGameCommand(sender, args);
-		}
-		else if(cmd.getName().equalsIgnoreCase("mhstop")){
-			if(!isSenderAPlayerOrConsole(sender)) return true;
-			ManhuntCommands.stopGameCommand(p, args);
-		}
-		else if (cmd.getName().equalsIgnoreCase("mhreloadconfig")) {
+		if (cmd.getName().equalsIgnoreCase("mhreloadconfig")) {
 			if(!isSenderAPlayerOrConsole(sender)) return true;
 			ManhuntCommands.reloadConfigCommand(sender);
 		}
 		else if (cmd.getName().equalsIgnoreCase("mhw-about")) {
 			try {
-				NonBukkit.authors(sender);
+				AuthorsAdvancedVer.authors(sender);
 			} catch (NoClassDefFoundError e) {
-				ManhuntCommands.authors(sender);
+				AuthorsBaiscVer.authors(sender);
 			}
 		}
-		else if (cmd.getName().equalsIgnoreCase("test")) {
-			if(!isSenderAPlayer(sender)) return true;
-			ManhuntCommands.testCommand(p);
-		}
+//		else if (cmd.getName().equalsIgnoreCase("test")) {
+//			if(!isSenderAPlayer(sender)) return true;
+//			ManhuntCommands.testCommand(p);
+//		}
 		else if (cmd.getName().equalsIgnoreCase("mhteam")) {
 			if(!isSenderAPlayerOrConsole(sender)) return true;
 			ManhuntCommands.mhTeamCommand(sender, args);
@@ -142,28 +95,19 @@ public class Main extends JavaPlugin implements Listener {
 			if(!isSenderAPlayer(sender)) return true;
 			ManhuntCommands.problemsCommand(p, args);
 		}
-		else if(cmd.getName().equalsIgnoreCase("mhgame")){
+		else if(cmd.getName().equalsIgnoreCase("mhgame")) {
 			if(!isSenderAPlayerOrConsole(sender)) return true;
 			ManhuntCommands.mhGameCommand(sender, args);
 		}
 		return true; //false???
 	}
-    
-	public static void sendActionBar(Player player, String message){
-//        CraftPlayer p = (CraftPlayer) player;
-		
-        //IChatBaseComponent cbc = ChatSerializer.a("{\"text\": \"" + message + "\"}");
-        //PacketPlayOutChat ppoc = new PacketPlayOutChat(cbc, null, null);
-        //player.send
-        //((CraftPlayer) p).getHandle().playerConnection.sendPacket(ppoc);
-    }
 	
-	private void initAll() {
+	private void initEverything() {
 		initFiles();
 		DebugModeSwitch.init();
 		References.os = OsDependent.getSystemType();
-		registerListeners(); // not sure if that should be done so early
-		RegisterAllCommands();
+		registerListeners();
+		registerCommands();
 		TeamsManager.resetTeams();
 	}
 	
@@ -173,12 +117,8 @@ public class Main extends JavaPlugin implements Listener {
 		Bukkit.getPluginManager().registerEvents(new ManhuntEvents(), this);
 	}
 	
-	private void RegisterAllCommands() { // can forget to change command name everywhere and get a bug
-		getCommand("mhhunter").setTabCompleter(new MhRoleCompleter());
-		getCommand("mhspeedrunner").setTabCompleter(new MhRoleCompleter());
-		getCommand("mhnorole").setTabCompleter(new MhRoleCompleter());
-		getCommand("gm").setTabCompleter(new MhGmCompleter());
-		getCommand("mhstart").setTabCompleter(new MhStartCompleter());
+	private void registerCommands() { // can forget to change command name everywhere and get a bug
+//		getCommand("mhgame").setTabCompleter(new MhStartCompleter());
 		getCommand("mhreloadconfig").setTabCompleter(new EmptyCompleterNoArgs());
 		getCommand("mhw-about").setTabCompleter(new EmptyCompleterNoArgs());
 		getCommand("mhteam").setTabCompleter(new MhTeamCompleter());
@@ -193,9 +133,10 @@ public class Main extends JavaPlugin implements Listener {
 		pluginConfigDirectory.mkdirs();
 	}
 	
-	private void finishInit() {
-		if(SimpleLogger.debugOutputEnabled) {
-			log(ChatColor.AQUA + "Debug mode is enabled");
-		}
+	private void finishInitialization() {
+		log(ChatColor.GREEN + "Advanced Manhunt plugin has been enabled!");
+		if(SimpleLogger.debugOutputEnabled) debug(ChatColor.AQUA + "Debug mode is enabled");
 	}
+	
+	//TODO learn to send action bars
 }
