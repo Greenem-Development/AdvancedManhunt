@@ -18,16 +18,16 @@ import org.bukkit.entity.Player;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.daylight.plugins.manhunt.commands.ManhuntCommands;
-import org.daylight.plugins.manhunt.completers.MhProblemsCompleter;
+import org.daylight.plugins.manhunt.commands.combined.MhTeamToolsExecutorCompleter;
+import org.daylight.plugins.manhunt.completers.MhCompassCompleter;
 import org.daylight.plugins.manhunt.completers.MhTeamCompleter;
-import org.daylight.plugins.manhunt.completers.MhTeamToolsCompleter;
-import org.daylight.plugins.manhunt.completers.plain.EmptyCompleterNoArgs;
+import org.daylight.plugins.manhunt.completers.plain.EmptyCompleter;
 import org.daylight.plugins.manhunt.config.ConfigOperations;
 import org.daylight.plugins.manhunt.config.ConfigWatcher;
 import org.daylight.plugins.manhunt.coreDependent.AuthorsAdvancedVer;
 import org.daylight.plugins.manhunt.coreDependent.AuthorsBaiscVer;
 import org.daylight.plugins.manhunt.data.References;
-import org.daylight.plugins.manhunt.events.FrozenEvents;
+import org.daylight.plugins.manhunt.events.FreezingFeature;
 import org.daylight.plugins.manhunt.events.ManhuntEvents;
 import org.daylight.plugins.manhunt.teams.TeamManager;
 import org.daylight.plugins.manhunt.util.OsDependent;
@@ -83,9 +83,9 @@ public class Main extends JavaPlugin implements Listener {
 			if(!isSenderAPlayerOrConsole(sender)) return true;
 			ManhuntCommands.mhTeamToolsCommand(sender, args);
 		}
-		else if(cmd.getName().equalsIgnoreCase("mhissues")) {
+		else if(cmd.getName().equalsIgnoreCase("mhcompass")) {
 			if(!isSenderAPlayer(sender)) return true;
-			ManhuntCommands.problemsCommand(p, args);
+			ManhuntCommands.mhCompassCommand(p, args);
 		}
 		else if(cmd.getName().equalsIgnoreCase("mhgame")) {
 			if(!isSenderAPlayerOrConsole(sender)) return true;
@@ -117,16 +117,16 @@ public class Main extends JavaPlugin implements Listener {
 	
 	private void registerListeners() {
 		Bukkit.getPluginManager().registerEvents(this, this);
-		Bukkit.getPluginManager().registerEvents(new FrozenEvents(), this);
+		Bukkit.getPluginManager().registerEvents(new FreezingFeature(), this);
 		Bukkit.getPluginManager().registerEvents(new ManhuntEvents(), this);
 	}
 	
 	private void registerCommands() {
-//		getCommand("mhgame").setTabCompleter(new MhStartCompleter());
-		getCommand("mhw-about").setTabCompleter(new EmptyCompleterNoArgs());
+		getCommand("mhgame").setTabCompleter(new EmptyCompleter());
+		getCommand("mhw-about").setTabCompleter(new EmptyCompleter());
 		getCommand("mhteam").setTabCompleter(new MhTeamCompleter());
-		getCommand("mhteams").setTabCompleter(new MhTeamToolsCompleter());
-		getCommand("mhissues").setTabCompleter(new MhProblemsCompleter());
+		getCommand("mhteams").setTabCompleter(new MhTeamToolsExecutorCompleter());
+		getCommand("mhcompass").setTabCompleter(new MhCompassCompleter());
 	}
 	
 	private void initFiles() {

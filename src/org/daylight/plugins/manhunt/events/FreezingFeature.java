@@ -31,10 +31,9 @@ import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerPickupArrowEvent;
 import org.bukkit.event.player.PlayerToggleFlightEvent;
-import org.daylight.plugins.manhunt.commands.AbstractCommand;
 import org.daylight.plugins.manhunt.util.Stash;
 
-public class FrozenEvents implements Listener {
+public class FreezingFeature implements Listener {
 	private static Map <String, Location> frozenPlayersSavedLocations = new HashMap<>();
 	private static Map <String, Integer> frozenAirLevel = new HashMap<>();
 	

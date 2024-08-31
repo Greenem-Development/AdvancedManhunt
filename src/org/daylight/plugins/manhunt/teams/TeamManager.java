@@ -12,6 +12,7 @@ import org.bukkit.entity.Player;
 import org.daylight.plugins.manhunt.compass.CompassUpdating;
 import org.daylight.plugins.manhunt.compass.CompassUtils;
 import org.daylight.plugins.manhunt.util.projectspecific.FormattedMessages;
+import org.daylight.plugins.manhunt.util.projectspecific.nbt.ManhuntItems.MainCompassType;
 
 public class TeamManager {
 	private static List<ManhuntTeam> teams = new ArrayList<>();
@@ -97,7 +98,7 @@ public class TeamManager {
 		team.addPlayer(new ManhuntPlayer(nickname));
 		if(team.canBeTracked()) CompassUpdating.updateOnMovement(p, p.getLocation());
 		if(team.canUseTracking()) {
-			CompassUtils.giveCompass(p);
+			CompassUtils.giveCompass(p, MainCompassType.TRACKED_TEAMS);
 			CompassUpdating.updateBecauseATrackerAppeared(p);
 		}
 		

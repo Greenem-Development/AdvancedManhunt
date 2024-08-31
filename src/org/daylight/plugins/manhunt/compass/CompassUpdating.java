@@ -3,7 +3,6 @@ package org.daylight.plugins.manhunt.compass;
 import static org.daylight.plugins.manhunt.util.SimpleLogger.debug;
 import static org.daylight.plugins.manhunt.util.SimpleLogger.log;
 
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -22,6 +21,8 @@ import org.daylight.plugins.manhunt.teams.ManhuntPlayer;
 import org.daylight.plugins.manhunt.teams.ManhuntTeam;
 import org.daylight.plugins.manhunt.teams.TeamManager;
 import org.daylight.plugins.manhunt.util.projectspecific.FormattedMessages;
+import org.daylight.plugins.manhunt.util.projectspecific.nbt.ManhuntItems;
+import org.daylight.plugins.manhunt.util.projectspecific.nbt.ManhuntItems.MainCompassType;
 
 public class CompassUpdating {
 	public static Environment getEnvironment(Player p) {
@@ -41,7 +42,7 @@ public class CompassUpdating {
 		if(ownTeam == null || !ownTeam.canUseTracking()) return;
 		for(ManhuntTeam team : ownTeam.getListTrackingOtherTeams()) {
 			for(ManhuntPlayer trackedMp : team.getPlayers()) {
-				Player trackedP = Bukkit.getPlayerExact(trackedMp.getNickname());
+				Player trackedP = trackedMp.getPlayer();
 				if(trackedP != null) {
 					updateOnMovement(trackedP, trackedP.getLocation(), tracker, compassInHandBypass);
 				}
@@ -53,10 +54,7 @@ public class CompassUpdating {
 		updateOnMovement(p, newLocation, null, false);
 	}
 	
-	public static void updateOnMovement(Player p, Location newLocation, Player bypassForPlayer, boolean compassInHandBypass) {
-		ManhuntTeam ownTeam = TeamManager.getTeamByPlayerNickname(p.getName());
-		if(ownTeam == null || !ownTeam.canBeTracked()) return;
-		ManhuntPlayer mp = ownTeam.getPlayer(p.getName());
+	private static void updateTrackedPlayerLocation(ManhuntPlayer mp, Location newLocation) {
 		Environment env = newLocation.getWorld().getEnvironment();
 		if(env == Environment.NORMAL) {
 			mp.setLastOverworldLocation(newLocation);
@@ -65,50 +63,71 @@ public class CompassUpdating {
 		} else if(env == Environment.THE_END) {
 			mp.setLastEndLocation(newLocation);
 		}
+	}
+	
+	public static void updateOnMovement(Player p, Location newLocation, Player bypassForPlayer, boolean compassInHandBypass) {
+		ManhuntTeam trackedTeam = TeamManager.getTeamByPlayerNickname(p.getName());
+		if(trackedTeam == null || !trackedTeam.canBeTracked()) return;
 		
-		for(ManhuntTeam trackedByTeam : ownTeam.getListBeingTrackedByTeams()) {
-			for(ManhuntPlayer trackedByMp : trackedByTeam.getPlayers()) {
-				Player trackedByP = Bukkit.getPlayerExact(trackedByMp.getNickname());
-				if(trackedByP == null) continue;
-				updateCompassForTracker(trackedByTeam, trackedByP, newLocation, bypassForPlayer, compassInHandBypass);
+		// Set new coordinates and dimension
+		updateTrackedPlayerLocation(trackedTeam.getPlayer(p.getName()), newLocation);
+		
+		// Iterate over all teams that can track this player
+		for(ManhuntTeam trackerTeam : trackedTeam.getListBeingTrackedByTeams()) {
+			// Iterate over their members
+			for(ManhuntPlayer trackerMp : trackerTeam.getPlayers()) {
+				Player trackerP = trackerMp.getPlayer();
+				if(trackerP == null) continue;
+				
+				// Determine new compass state for that tracker and set the compass data
+				updateCompassForTracker(trackerTeam, trackerP, newLocation, bypassForPlayer, compassInHandBypass);
 			}
 		}
 	}
 	
-	private static void updateCompassForTracker(ManhuntTeam trackedByTeam, Player trackedByP, Location newLocationn, Player bypassForPlayer, boolean compassInHandBypass) {
-		if(trackedByP.getWorld().getEnvironment() != Environment.NORMAL && !(compassInHandBypass && bypassForPlayer == trackedByP) && ((trackedByP.getInventory().getItemInMainHand() != null && trackedByP.getInventory().getItemInMainHand().getType() == Material.COMPASS) || 
-				(trackedByP.getInventory().getItemInOffHand() != null && trackedByP.getInventory().getItemInOffHand().getType() == Material.COMPASS))) {
-			return;
-		}
-		Environment env = trackedByP.getLocation().getWorld().getEnvironment();
-		List<Location> locations = new ArrayList<>();
-		for(ManhuntTeam trackingTeam : trackedByTeam.getListTrackingOtherTeams()) {
-			for(ManhuntPlayer trackingMp : trackingTeam.getPlayers()) {
-				Player trackingP = Bukkit.getPlayerExact(trackingMp.getNickname());
-				if(trackingP == null) continue;
-				if(env == Environment.NORMAL) {
-					locations.add(trackingMp.getLastOverworldLocation());
-				} else if(env == Environment.NETHER) {
-					locations.add(trackingMp.getLastNetherLocation());
-				} else if(env == Environment.THE_END) {
-					locations.add(trackingMp.getLastEndLocation());
-				}
-			}
-		}
+	private static void addTargetLocationToList(Environment trackerEnv, ManhuntPlayer targetMp, List<Location> resultList) {
+		if(!targetMp.isOnline()) return;
 		
+		if(trackerEnv == Environment.NORMAL) {
+			resultList.add(targetMp.getLastOverworldLocation());
+		} else if(trackerEnv == Environment.NETHER) {
+			resultList.add(targetMp.getLastNetherLocation());
+		} else if(trackerEnv == Environment.THE_END) {
+			resultList.add(targetMp.getLastEndLocation());
+		}
+	}
+	
+	private static Location pickBestLocation(List<Location> locations, Location trackerLocation) {
 		double minDistance = Double.MAX_VALUE;
 		Location bestLocation = null;
+		
 		for(Location l : locations) {
-			if(l != null) {
-				double newDistance = l.distance(trackedByP.getLocation());
-				if(newDistance < minDistance) {
-					minDistance = newDistance;
-					bestLocation = l;
-				}
+			if(l == null) continue;
+			double newDistance = l.distance(trackerLocation);
+			if(newDistance < minDistance) {
+				minDistance = newDistance;
+				bestLocation = l;
 			}
 		}
 		
-		CompassUtils.setTarget(trackedByP, bestLocation);
+		return bestLocation;
+	}
+	
+	private static void updateCompassForTracker(ManhuntTeam trackerTeam, Player trackerP, Location newLocationn, Player bypassForPlayer, boolean compassInHandBypass) {
+		// Return if not the overworld and held in hand
+		if(trackerP.getWorld().getEnvironment() != Environment.NORMAL &&
+				!(compassInHandBypass && bypassForPlayer == trackerP) && CompassUtils.hasCompassInHand(trackerP)) return;
+		
+		// Create a list of all possible target locations
+		List<Location> locations = new ArrayList<>();
+		for(ManhuntTeam trackingTeam : trackerTeam.getListTrackingOtherTeams()) {
+			for(ManhuntPlayer trackingMp : trackingTeam.getPlayers()) {
+				addTargetLocationToList(trackerP.getLocation().getWorld().getEnvironment(), trackingMp, locations);
+			}
+		}
+		
+		// Pick the best location and set it
+		CompassUtils.setTarget(trackerP, pickBestLocation(locations, trackerP.getLocation()));
 	}
 	
 	public static void checkHotbarScrollCompassMessage(PlayerItemHeldEvent e) {
@@ -120,21 +139,16 @@ public class CompassUpdating {
 		
 		if(e.getPlayer().getWorld().getEnvironment() == Environment.NORMAL) return;
 		
-		if((inv.getItem(e.getNewSlot()) != null && inv.getItem(e.getNewSlot()).getType() == Material.COMPASS) && (inv.getItem(e.getPreviousSlot()) == null || inv.getItem(e.getPreviousSlot()).getType() != Material.COMPASS) ||
-				(inv.getItemInOffHand() != null && inv.getItemInOffHand().getType() == Material.COMPASS)) {
-//			log("checked");
+		if(ManhuntItems.isAManhuntCompass(inv.getItem(e.getNewSlot())) && !ManhuntItems.isAManhuntCompass(inv.getItem(e.getPreviousSlot())) && CompassUtils.hasCompassInHand(e.getPlayer())) {
 			if(CompassUtils.isntInWarningList(pName)) {
-//				log("added");
 				CompassUtils.addToWarningList(pName);
 				e.getPlayer().sendMessage(FormattedMessages.cantHoldCompassHereMessage());
 				return;
 			}
 		}
 		
-		if((inv.getItem(e.getPreviousSlot()) != null && inv.getItem(e.getPreviousSlot()).getType() == Material.COMPASS) && (inv.getItem(e.getNewSlot()) == null || inv.getItem(e.getNewSlot()).getType() != Material.COMPASS) &&
-				!(inv.getItemInOffHand() != null && inv.getItemInOffHand().getType() == Material.COMPASS)) {
+		if(!ManhuntItems.isAManhuntCompass(inv.getItem(e.getNewSlot())) && ManhuntItems.isAManhuntCompass(inv.getItem(e.getPreviousSlot())) && !CompassUtils.hasCompassInHand(e.getPlayer())) {
 			CompassUtils.removeFromWarningList(pName);
-//			log("removed");	
 			updateBecauseATrackerAppeared(e.getPlayer(), true);
 		}
 	}
@@ -151,14 +165,14 @@ public class CompassUpdating {
 		if(ownTeam == null || !ownTeam.canUseTracking()) return;
 		for (Iterator<ItemStack> it = e.getDrops().iterator(); it.hasNext(); ) {
 		    ItemStack is = it.next();
-		    if(is.getType() == Material.COMPASS)it.remove();
+		    if(is.getType() == Material.COMPASS) it.remove();
 		}
 	}
 	
 	public static void onPlayerRespawn(PlayerRespawnEvent e) {
 		ManhuntTeam ownTeam = TeamManager.getTeamByPlayerNickname(e.getPlayer().getName());
 		if(ownTeam == null || !ownTeam.canUseTracking()) return;
-		CompassUtils.giveCompass(e.getPlayer());
+		CompassUtils.giveCompass(e.getPlayer(), MainCompassType.TRACKED_TEAMS);
 		CompassUtils.updatePositionsInATick(e.getPlayer(), ownTeam, true);
 	}
 }

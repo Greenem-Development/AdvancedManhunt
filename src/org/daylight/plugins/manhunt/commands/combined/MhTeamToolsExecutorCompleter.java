@@ -1,4 +1,4 @@
-package org.daylight.plugins.manhunt.completers;
+package org.daylight.plugins.manhunt.commands.combined;
 
 import static org.daylight.plugins.manhunt.util.SimpleLogger.debug;
 import static org.daylight.plugins.manhunt.util.SimpleLogger.log;
@@ -20,49 +20,10 @@ import org.daylight.plugins.manhunt.util.projectspecific.FormattedMessages;
 import org.daylight.plugins.manhunt.util.projectspecific.FormattedMessages.MessageType;
 import org.javatuples.Pair;
 
-public class MhTeamToolsCompleter implements TabCompleter {
-	public static boolean check(String s1, String s2) {
-		if(s1 == s2) return true;
-		if(s1 == null || s2 == null) return false;
-		return s1.equals(s2);
-	}
-	
-	public static String groupAndFirstWord(Matcher matcher, int groupId) {
-		String res = matcher.group(groupId);
-		if(res != null) {
-			String[] parts = res.split(" ");
-			if (parts.length == 0) return null;
-			return parts[0];
-		}
-		return null;
-	}
-	
-	public static String groupAndTrimAndFirstWord(Matcher matcher, int groupId) {
-		String res = matcher.group(groupId);
-		if(res != null) {
-			String[] parts = res.trim().split(" ");
-			if (parts.length == 0) return null;
-			return parts[0];
-		}
-		return null;
-	}
-	
-	public static String groupAndTrim(Matcher matcher, int groupId) {
-		String res = matcher.group(groupId);
-		if(res != null) res = res.trim();
-		return res;
-	}
-	
+public class MhTeamToolsExecutorCompleter implements TabCompleter {
 	private static boolean matchesPattern(AtomicReference<Matcher> matcher, String text, Pattern pattern) {
 		matcher.set(pattern.matcher(text));
 		return matcher.get().matches();
-	}
-	
-	private static Pair<Boolean, Boolean> stringToBooleanAndError(String text) {
-		String tl = text.toLowerCase();
-		if(tl.equals("true")) return new Pair<Boolean, Boolean>(true, false);
-		else if(tl.equals("false")) return new Pair<Boolean, Boolean>(false, false);
-		else return new Pair<Boolean, Boolean>(false, true);
 	}
 	
 	private static ManhuntTeam checkTeamOption(CommandSender sender, String teamName) {
@@ -92,20 +53,11 @@ public class MhTeamToolsCompleter implements TabCompleter {
 		return new Pair<ManhuntTeam, ManhuntTeam>(team, targetTeam);
 	}
 	
-	private static String removeLastWord(String text) {
-		String[] words = text.trim().split("\\s");
-		String[] otherParts = new String[words.length-1];
-		for(int i = 0; i > otherParts.length; i++) {
-			otherParts[i] = words[i];
-		}
-		return String.join(" ", otherParts);
-	}
-	
 	private static String anythingExceptQuotes = "[^\"]";
 	private static String regexNameWQuotesSuppport = "((?:\"" + anythingExceptQuotes + "*\")|(?:" + anythingExceptQuotes + "*))"; // "((?:\".+\")|(?:\\S+))";
 	private static String regexNameWQuotesSuppportButExcluded = "(?:(?:\"(" + anythingExceptQuotes + "+)\")|(\\S+))";
 	private static String regexTrueOrFalse = "((?:true)|(?:false))";
-	private static String regexNOTTrueOrFalse = "\\S+(?!true)(?!false)\\S+";
+	private static String regexNOTTrueOrFalse = "\\S+(?!true)(?!false)\\S*"; // was \\S+ there
 	
 	private static Pattern patternCreateTeamStart = Pattern.compile("create_team\\s*");
 	private static Pattern patternCreateTeamDone = Pattern.compile("create_team\\s+" + regexNameWQuotesSuppport + "\\s*");
@@ -135,103 +87,65 @@ public class MhTeamToolsCompleter implements TabCompleter {
 	
 	private static final List<String> nothing = new ArrayList<>();
 	
-	public static List<String> processMhToolsArgs(CommandSender sender, String s, boolean forTheCompleter) {
+	public static void executeMhToolsCommand(CommandSender sender, String s) {
 		List<String> arguments = new ArrayList<>();
 //		String sl = s.toLowerCase();
 		AtomicReference<Matcher> matcher = new AtomicReference<>();
-		AtomicReference<Matcher> matcher2 = new AtomicReference<>();
 		
-		// ---------------- create / delete a team ----------------
-		
-		if(!forTheCompleter && matchesPattern(matcher, s, patternCreateTeamDone)) {
+		if(matchesPattern(matcher, s, patternCreateTeamDone)) {
 			String teamName = CompleterUtils.formatRemoveNameQuotes(matcher.get().group(1));
 			if(TeamManager.teamExists(teamName)) {
 				FormattedMessages.sendColoredMessage(sender, MessageType.ISSUE, "Such team already exists!");
-				return nothing;
+				return;
 			}
 			ManhuntTeam newTeam = new ManhuntTeam(teamName).setCanUseTracking(false).setCanBeTracked(true);
 			TeamManager.createTeam(newTeam);
 			FormattedMessages.sendColoredMessage(sender, MessageType.NORMAL, "Created team " + FormattedMessages.getColoredTeamName(newTeam));
-			return nothing;
+			return ;
 		}
 		
-		if(!forTheCompleter && matchesPattern(matcher, s, patternDeleteTeamDone)) {
+		if(matchesPattern(matcher, s, patternDeleteTeamDone)) {
 			String teamName = CompleterUtils.formatRemoveNameQuotes(matcher.get().group(1));
 			ManhuntTeam theTeam = checkTeamOption(sender, teamName);
-			if(theTeam == null) return nothing;
+			if(theTeam == null) return;
 			String teamText = FormattedMessages.getColoredTeamName(theTeam);
 			TeamManager.deleteTeam(teamName);
 			FormattedMessages.sendColoredMessage(sender, MessageType.NORMAL, "Deleted team " + teamText);
-			return nothing;
+			return;
 		}
-		
-		if(forTheCompleter && matchesPattern(matcher, s, patternCreateTeamStart)) {
-			return arguments;
-		}
-		
-		if(forTheCompleter && matchesPattern(matcher, s, patternDeleteTeamStart)) {
-			return TeamManager.getAllTeamsNames();
-		}
-		
-		// configure
-		
-		if(forTheCompleter && matchesPattern(matcher, s, patternConfigureTeamStart)) { // || matchesPattern(matcher2, removeLastWord(s), patternConfigureTeamInPrgr)
-			return TeamManager.getAllTeamsNames();
-		}
-		
-		if(forTheCompleter && matchesPattern(matcher, s, patternConfigureTeamWNameStart)) { // || matchesPattern(matcher2, removeLastWord(s), patternConfigureTeamWNameInPrgr)
-			arguments.add("can_use_tracking");
-			arguments.add("can_be_tracked");
-			arguments.add("track_team");
-			arguments.add("untrack_team");
-			arguments.add("tracking_list");
-			return arguments;
-		}
-		
-		if(forTheCompleter && matchesPattern(matcher, s, patternConfigureTeamTrackingTrueFalseStart)) { //  || matchesPattern(matcher2, removeLastWord(s), patternConfigureTeamTrackingTrueFalseInPrgr)
-			arguments.add("true");
-			arguments.add("false");
-			return arguments;
-		}
-		
-		if(forTheCompleter && matchesPattern(matcher, s, patternConfigureTeamTrackOrUntrackTeamStart)) { // || matchesPattern(matcher2, removeLastWord(s), patternConfigureTeamTrackOrUntrackTeamInPrgr)
-			return TeamManager.getAllTeamsNames();
-		}
-		
-		//               --------------------------------- EXECUTORS ------------------------------------ 
 		
 		// True or false
 		
-		if(!forTheCompleter && matchesPattern(matcher, s, patternConfigureTeamCanUseTrackingDone)) {
+		if(matchesPattern(matcher, s, patternConfigureTeamCanUseTrackingDone)) {
 			String teamName = CompleterUtils.formatRemoveNameQuotes(matcher.get().group(1));
 			ManhuntTeam team = checkTeamOption(sender, teamName);
 			if(team != null) {
 				team.setCanUseTracking(Boolean.parseBoolean(matcher.get().group(2)));
 				FormattedMessages.sendColoredMessage(sender, MessageType.NORMAL, "Have set \"can use tracking\" to %hlt" + matcher.get().group(2).toLowerCase() + "%rst for " + FormattedMessages.getColoredTeamName(teamName));
 			}
-			return nothing;
+			return;
 		}
 		
-		if(!forTheCompleter && matchesPattern(matcher, s, patternConfigureTeamCanBeTrackedDone)) {
+		if(matchesPattern(matcher, s, patternConfigureTeamCanBeTrackedDone)) {
 			String teamName = CompleterUtils.formatRemoveNameQuotes(matcher.get().group(1));
 			ManhuntTeam team = checkTeamOption(sender, teamName);
 			if(team != null) {
 				team.setCanBeTracked(Boolean.parseBoolean(matcher.get().group(2)));
 				FormattedMessages.sendColoredMessage(sender, MessageType.NORMAL, "Have set \"can be tracked\" to %hlt" + matcher.get().group(2).toLowerCase() + "%rst for " + FormattedMessages.getColoredTeamName(teamName));
 			}
-			return nothing;
+			return;
 		}
 		
 		// negative
 		
-		if(!forTheCompleter && matchesPattern(matcher, s, patternBooleanWrongConfigureTeam)) {
+		if(matchesPattern(matcher, s, patternBooleanWrongConfigureTeam)) {
 			FormattedMessages.sendColoredMessage(sender, MessageType.ISSUE, "Choose %hlt\"true\"%rst or %hlt\"false\"%rst option!"); // "Choose " + ChatColor.BOLD + "\"true\"" + ChatColor.RESET + ChatColor.RED + " or " + ChatColor.BOLD + "\"false\"" + ChatColor.RESET + ChatColor.RED + " option!");
-			return nothing;
+			return;
 		}
 		
 		// Tracking targets
 		
-		if(!forTheCompleter && matchesPattern(matcher, s, patternConfigureTeamTrackTeamDone)) {
+		if(matchesPattern(matcher, s, patternConfigureTeamTrackTeamDone)) {
 			String team1Name = CompleterUtils.formatRemoveNameQuotes(matcher.get().group(1));
 			String team2Name = CompleterUtils.formatRemoveNameQuotes(matcher.get().group(2));
 			Pair<ManhuntTeam, ManhuntTeam> teams = checkTeamsOptions(sender, team1Name, team2Name);
@@ -239,10 +153,10 @@ public class MhTeamToolsCompleter implements TabCompleter {
 				teams.getValue0().addTeamToTrack(teams.getValue1());
 				FormattedMessages.sendColoredMessage(sender, MessageType.NORMAL, "Team " + FormattedMessages.getColoredTeamName(team1Name) + "%rst is now tracking team " + FormattedMessages.getColoredTeamName(team2Name));
 			}
-			return nothing;
+			return;
 		}
 		
-		if(!forTheCompleter && matchesPattern(matcher, s, patternConfigureTeamUntrackTeamDone)) {
+		if(matchesPattern(matcher, s, patternConfigureTeamUntrackTeamDone)) {
 			String team1Name = CompleterUtils.formatRemoveNameQuotes(matcher.get().group(1));
 			String team2Name = CompleterUtils.formatRemoveNameQuotes(matcher.get().group(2));
 			Pair<ManhuntTeam, ManhuntTeam> teams = checkTeamsOptions(sender, team1Name, team2Name);
@@ -250,10 +164,10 @@ public class MhTeamToolsCompleter implements TabCompleter {
 				teams.getValue0().addTeamToTrack(teams.getValue1());
 				FormattedMessages.sendColoredMessage(sender, MessageType.NORMAL, "Team " + FormattedMessages.getColoredTeamName(team1Name) + "%rst is now not tracking team " + FormattedMessages.getColoredTeamName(team2Name) + "%rst anymore");
 			}
-			return nothing;
+			return;
 		}
 		
-		if(!forTheCompleter && matchesPattern(matcher, s, patternConfigureTeamTrackingList)) {
+		if(matchesPattern(matcher, s, patternConfigureTeamTrackingList)) {
 			String teamName = CompleterUtils.formatRemoveNameQuotes(matcher.get().group(1));
 			ManhuntTeam team = checkTeamOption(sender, teamName);
 			if(team != null) {
@@ -275,42 +189,64 @@ public class MhTeamToolsCompleter implements TabCompleter {
 				
 				FormattedMessages.sendColoredMessage(sender, MessageType.NORMAL, text);
 			}
-			return nothing;
+			return;
+		}
+		
+		sender.sendMessage(Lines.genericWrongCommandUsage);
+	}
+	
+	public static List<String> suggestMhToolsCommand(CommandSender sender, String s) {
+		List<String> arguments = new ArrayList<>();
+		AtomicReference<Matcher> matcher = new AtomicReference<>();
+		
+		// ---------------- create / delete a team ----------------
+		
+		if(matchesPattern(matcher, s, patternCreateTeamStart)) {
+			return arguments;
+		}
+		
+		if(matchesPattern(matcher, s, patternDeleteTeamStart)) {
+			return TeamManager.getAllTeamsNames();
+		}
+		
+		// configure
+		
+		if(matchesPattern(matcher, s, patternConfigureTeamStart)) { // || matchesPattern(matcher2, removeLastWord(s), patternConfigureTeamInPrgr)
+			return TeamManager.getAllTeamsNames();
+		}
+		
+		if(matchesPattern(matcher, s, patternConfigureTeamWNameStart)) { // || matchesPattern(matcher2, removeLastWord(s), patternConfigureTeamWNameInPrgr)
+			arguments.add("can_use_tracking");
+			arguments.add("can_be_tracked");
+			arguments.add("track_team");
+			arguments.add("untrack_team");
+			arguments.add("tracking_list");
+			return arguments;
+		}
+		
+		if(matchesPattern(matcher, s, patternConfigureTeamTrackingTrueFalseStart)) { //  || matchesPattern(matcher2, removeLastWord(s), patternConfigureTeamTrackingTrueFalseInPrgr)
+			arguments.add("true");
+			arguments.add("false");
+			return arguments;
+		}
+		
+		if(matchesPattern(matcher, s, patternConfigureTeamTrackOrUntrackTeamStart)) { // || matchesPattern(matcher2, removeLastWord(s), patternConfigureTeamTrackOrUntrackTeamInPrgr)
+			return TeamManager.getAllTeamsNames();
 		}
 		
 		// empty
 		
-		if(forTheCompleter && matchesPattern(matcher, s, patternEmpty)) {
+		if(matchesPattern(matcher, s, patternEmpty)) {
 			arguments.add("create_team");
 			arguments.add("delete_team");
 			arguments.add("configure_team");
 			return arguments;
 		}
 		
-		if(!forTheCompleter) {
-			sender.sendMessage(Lines.genericWrongCommandUsage);
-		}
 		return arguments;
 	}
 	
-	public static class MhTeamToolsArgs { // old
-		Pattern pattern1 = Pattern.compile("((create)|(modify)((\\severyone|\\sremaining|\\sspecific(\\s\\S+)?)?)?)?(\\sjoin|\\sleave)?(\\s\\S+)?\\s*");
-		Pattern patternCreateTeam = Pattern.compile("create_team(?:\\s(\\S+))?\\s*");
-		Pattern patternCreateTeam1 = Pattern.compile("configure_team(?:\\s(\\S+))?(?:\\s((?:can_use_tracking)|(?:can_be_tracked)|(?:can_choose_target_team)))?\\s*");
-	}
-	
-	class TestCommandImpl extends Command {
-		protected TestCommandImpl(String name) {
-			super(name);
-		}
-
-		@Override
-		public boolean execute(CommandSender sender, String commandLabel, String[] args) {
-			return false;
-		}
-	}
-	
-	public static void main(String[] args) {
+	public static void main2(String[] args) {
 //		Pattern p = Pattern.compile("(?:(?:\"(.+)\")|(\\S+))");
 //		System.out.println(p.matcher("\"aaa\"").group(1));
 		
@@ -325,7 +261,7 @@ public class MhTeamToolsCompleter implements TabCompleter {
 		String str = "configure_team \"a a\" can_be_tracked taa";
 		System.out.println(patternBooleanWrongConfigureTeam.matcher(str).matches());
 		
-		MhTeamToolsCompleter instance = new MhTeamToolsCompleter();
+		MhTeamToolsExecutorCompleter instance = new MhTeamToolsExecutorCompleter();
 		TeamManager.createTeam(new ManhuntTeam("a a"));
 		TeamManager.createTeam(new ManhuntTeam("b b"));
 		System.out.println(instance.onTabComplete(null, null, null, new String[] {str}));
@@ -347,11 +283,11 @@ public class MhTeamToolsCompleter implements TabCompleter {
 			String userInput = CompleterUtils.getWordAtTheEnd(s);
 			String tryWith = s.substring(0, s.length() - userInput.length()).trim() + " ";
 //			debug("Checking for: " + tryWith);
-			List<String> options = processMhToolsArgs(sender, tryWith, true);
+			List<String> options = suggestMhToolsCommand(sender, tryWith);
 			if(options == null) return null;
 			
 //			debug("Removed: " + userInput);
 			return CompleterUtils.applyFilteredSuggestions(options, userInput);
-		} else return CompleterUtils.applyFilteredSuggestions(processMhToolsArgs(sender, s, true), null);
+		} else return CompleterUtils.applyFilteredSuggestions(suggestMhToolsCommand(sender, s), null);
 	}
 }

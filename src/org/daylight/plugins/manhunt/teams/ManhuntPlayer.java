@@ -20,6 +20,10 @@ public class ManhuntPlayer {
 		return Bukkit.getPlayerExact(nickname);
 	}
 	
+	public boolean isOnline() {
+		return getPlayer() != null;
+	}
+	
 	public String getNickname() {
 		return nickname;
 	}

@@ -1,7 +1,11 @@
 package org.daylight.plugins.manhunt.compass;
 
+import static org.daylight.plugins.manhunt.util.SimpleLogger.debug;
+import static org.daylight.plugins.manhunt.util.SimpleLogger.log;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 
 import org.bukkit.Bukkit;
@@ -15,6 +19,7 @@ import org.daylight.plugins.manhunt.main.Main;
 import org.daylight.plugins.manhunt.teams.ManhuntTeam;
 import org.daylight.plugins.manhunt.util.Stash;
 import org.daylight.plugins.manhunt.util.projectspecific.nbt.ManhuntItems;
+import org.daylight.plugins.manhunt.util.projectspecific.nbt.ManhuntItems.MainCompassType;
 
 public class CompassUtils {
 	private static void setCompassToNotFound(Player p, ItemStack compassItem) { // good
@@ -61,10 +66,24 @@ public class CompassUtils {
 		}
 	}
 	
-	public static void giveCompass(Player p) {
-		ItemStack compass = ManhuntItems.createTrackingCompass();
-		ManhuntItems.updateCompassName(p.getName(), compass);
-		Stash.AddItemStack(p, compass, 8);
+	public static void giveCompass(Player p, MainCompassType mainCompasasType) {
+		ItemStack compassTemplate = ManhuntItems.createTrackingCompass(mainCompasasType);
+		ManhuntItems.updateCompassName(p.getName(), compassTemplate);
+		Map<Integer, ItemStack> existing = ManhuntItems.getCompassIfHasType(p, mainCompasasType);
+		
+		debug(compassTemplate.getItemMeta().getDisplayName());
+		
+		int stays = -1;
+		if(existing.size() >= 1) {
+			if(existing.containsKey(getMainCompassTypeInvPos(mainCompasasType))) stays = getMainCompassTypeInvPos(mainCompasasType);
+			else stays = existing.entrySet().iterator().next().getKey();
+		}
+		for(Map.Entry<Integer, ItemStack> entry : existing.entrySet()) {
+			if(entry.getKey() != stays) p.getInventory().setItem(entry.getKey(), new ItemStack(Material.AIR));
+		}
+		
+		if(stays == -1) Stash.AddItemStack(p, compassTemplate, getMainCompassTypeInvPos(mainCompasasType));
+		else p.getInventory().setItem(stays, compassTemplate);
 	}
 	
 	private static List<String> playersWarnedOfNetherCompass = new ArrayList<>();
@@ -94,5 +113,22 @@ public class CompassUtils {
 		Bukkit.getScheduler().runTaskLater(Main.getInstance().plugin, () -> {
 			updatePositions(p, team, true);
 		}, 1);
+	}
+	
+	public static int getMainCompassTypeInvPos(MainCompassType mainType) {
+		switch (mainType) {
+		case TRACKED_TEAMS: {
+			return 8;
+		}
+		case OWN_TEAM: {
+			return 7;
+		}
+		default:
+			throw new IllegalArgumentException("Unexpected value in getMainCompassTypeInvLocation: " + mainType);
+		}
+	}
+	
+	public static boolean hasCompassInHand(Player p) {
+		return ManhuntItems.isAManhuntCompass(p.getInventory().getItemInMainHand()) || ManhuntItems.isAManhuntCompass(p.getInventory().getItemInOffHand());
 	}
 }

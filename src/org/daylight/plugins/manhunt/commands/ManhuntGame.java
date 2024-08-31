@@ -7,31 +7,35 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.daylight.plugins.manhunt.config.ConfigData;
-import org.daylight.plugins.manhunt.events.FrozenEvents;
+import org.daylight.plugins.manhunt.events.FreezingFeature;
 import org.daylight.plugins.manhunt.main.Main;
 import org.daylight.plugins.manhunt.teams.ManhuntPlayer;
 import org.daylight.plugins.manhunt.teams.ManhuntTeam;
 import org.daylight.plugins.manhunt.teams.TeamManager;
 import org.daylight.plugins.manhunt.util.Stash;
 
-public class ManhuntCommandActions {
+public class ManhuntGame {
 	public static void mhStartGame(int delay) {
 		mhStartGame(delay, ConfigData.speedrunnerDelayMilliseconds);
 	}
 	
-	public static void mhStartGame(int mainDelaySeconds, Integer customPreTimerDuration) { // TO REMAKE, THIS IS TOO BAD LOL
-		int preTimerDurationSeconds = (int) ConfigData.speedrunnerDelayMilliseconds / 1000;
-		if(customPreTimerDuration != null) preTimerDurationSeconds = customPreTimerDuration / 1000;
+	public static void mhStartGame(int mainDelaySeconds, Integer customPreTimerDurationMillis) {
+		int preTimerDurationMillis = (int) ConfigData.speedrunnerDelayMilliseconds;
+		if(customPreTimerDurationMillis != null) preTimerDurationMillis = customPreTimerDurationMillis;
 		
 		for(ManhuntTeam team : TeamManager.getAllTeams()) {
+			// Heal everyone, clear items, etc.
 			performGeneralPreparations(team);
-			announcePreTimer(team, preTimerDurationSeconds);
+			// Announce the first seconds to look around
+			announcePreTimer(team, preTimerDurationMillis);
 		}
+		// Execute after those seconds are out
 		Bukkit.getScheduler().scheduleSyncDelayedTask(Main.getInstance(), () -> {
 			for(ManhuntTeam team : TeamManager.getAllTeams()) {
+				// Release freeze-immune teams and create the main timer for others
 				releasePreTimerFrozenAndDoCoundown(team, mainDelaySeconds);
 			}
-		}, 20 * preTimerDurationSeconds);
+		}, 20 * preTimerDurationMillis / 1000);
 	}
 	
 	private static void performGeneralPreparations(ManhuntTeam team) {
@@ -43,23 +47,25 @@ public class ManhuntCommandActions {
 			Stash.disableFlightIfSurv(p);
 			if(ConfigData.clearItemsOnStart) clearItemsOnStart(p);
 			if(ConfigData.healOnStart) Stash.healPlayer(p);
-			FrozenEvents.freezePlayer(p, p.getLocation()); // make it before and put value when back online TODO
+			FreezingFeature.freezePlayer(p, p.getLocation()); // make it before and put value when back online TODO
 		}
 	}
 	
-	private static void announcePreTimer(ManhuntTeam team, int preStartDurationSeconds) {
-		if(preStartDurationSeconds <= 0) return;
+	private static void announcePreTimer(ManhuntTeam team, int preStartDurationMillis) {
+		if(preStartDurationMillis <= 0) return;
 		for(ManhuntPlayer mp : team.getPlayers()) {
 			Player p = mp.getPlayer();
 			if(p == null) continue;
 			
+			float durationSeconds = (float) (Math.round((preStartDurationMillis / 1000) * 100.0) / 100.0);
+			
 			if(team.getFrozenOnStart()) {
 				// For those who stays here
-				p.sendMessage(ChatColor.GRAY + "The freeze-immune teams have " + preStartDurationSeconds + " seconds to prepare...");
-				p.sendTitle(ChatColor.GRAY + "Wait...", "", 5, 18 * preStartDurationSeconds, 4);
+				p.sendMessage(ChatColor.GRAY + "The freeze-immune teams have " + durationSeconds + " seconds to prepare...");
+				p.sendTitle(ChatColor.GRAY + "Wait...", "", 5, (int) (18 * durationSeconds), 4);
 			} else {
 				// For those who is about to leave
-				p.sendMessage(ChatColor.YELLOW + "You have " + preStartDurationSeconds + " seconds to prepare");
+				p.sendMessage(ChatColor.YELLOW + "You have " + durationSeconds + " seconds to prepare");
 			}
 		}
 	}
@@ -72,13 +78,13 @@ public class ManhuntCommandActions {
 			if(team.getFrozenOnStart()) {
 				// Unfreeze when time is out
 				Bukkit.getScheduler().scheduleSyncDelayedTask(Main.getInstance(), () -> {
-					FrozenEvents.unfreezePlayer(p);
+					FreezingFeature.unfreezePlayer(p);
 				}, 20 * mainDelaySeconds);
 				// Schedule timer messages
 				scheduleMainTimerMessages(p, mainDelaySeconds);
 			} else {
 				// Let those go
-				FrozenEvents.unfreezePlayer(p);
+				FreezingFeature.unfreezePlayer(p);
 				p.sendMessage(ChatColor.YELLOW + "Now go!");
 			}
 		}

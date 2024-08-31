@@ -16,9 +16,9 @@ import org.bukkit.entity.Player;
 import org.daylight.plugins.manhunt.teams.TeamManager;
 
 public class MhTeamCompleter implements TabCompleter {
-	public static boolean check(String s1, String s2) {
-		if(s1 == s2) return true;
+	public static boolean safeEquals(String s1, String s2) {
 		if(s1 == null || s2 == null) return false;
+		if(s1 == s2) return true;
 		return s1.equals(s2);
 	}
 	
@@ -98,27 +98,27 @@ public class MhTeamCompleter implements TabCompleter {
 				return arguments;
 			}
 			
-			if(check(selfOrSomeone, "someone") && typeOfSomeone == null && targetName == null) {
+			if(safeEquals(selfOrSomeone, "someone") && typeOfSomeone == null && targetName == null) {
 				arguments.add("specific");
 				arguments.add("remaining");
 				arguments.add("everyone");
 				return arguments;
 			}
 			
-			if(check(selfOrSomeone, "someone") && check(typeOfSomeone, "specific") && targetName == null) {
+			if(safeEquals(selfOrSomeone, "someone") && safeEquals(typeOfSomeone, "specific") && targetName == null) {
 				for(Player p : Bukkit.getOnlinePlayers()) {
 					arguments.add(p.getName());
 				}
 				return arguments;
 			}
 			
-			if((targetName != null || check(selfOrSomeone, "self") || check(typeOfSomeone, "remaining") || check(typeOfSomeone, "everyone")) && (actionType == null || actionType.trim().isEmpty())) {
+			if((targetName != null || safeEquals(selfOrSomeone, "self") || safeEquals(typeOfSomeone, "remaining") || safeEquals(typeOfSomeone, "everyone")) && (actionType == null || actionType.trim().isEmpty())) {
 				arguments.add("join");
 				arguments.add("leave");
 				return arguments;
 			}
 			
-			if(actionType != null && !(check(actionType, "leave"))) {
+			if(actionType != null && !(safeEquals(actionType, "leave"))) {
 				return TeamManager.getAllTeamsNames();
 			}
 		}

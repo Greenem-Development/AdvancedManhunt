@@ -12,7 +12,7 @@ commands:
    mhgame:
       description: Start/stop the game or manage it in some way
       default: true
-   mhissues:
+   mhcompass:
       description: Special commands
       default: true
    mhw-about:

@@ -61,4 +61,12 @@ public class NbtManhuntUtils {
 			ownNbt.setBoolean(key, value);
 		});
 	}
+	
+	public static boolean isManhuntItem(ItemStack item) {
+		final AtomicReference<Boolean> reference = new AtomicReference<Boolean>();
+		NBT.get(item, nbt -> {
+		    reference.set(nbt.getCompound(OWN_SECTION_NAME) != null);
+		});
+		return reference.get();
+	}
 }

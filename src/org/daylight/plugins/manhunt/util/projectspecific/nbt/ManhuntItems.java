@@ -1,7 +1,16 @@
 package org.daylight.plugins.manhunt.util.projectspecific.nbt;
 
+import static org.daylight.plugins.manhunt.util.SimpleLogger.debug;
+import static org.daylight.plugins.manhunt.util.SimpleLogger.log;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.daylight.plugins.manhunt.teams.ManhuntTeam;
@@ -11,7 +20,7 @@ import org.daylight.plugins.manhunt.util.projectspecific.FormattedMessages;
 public class ManhuntItems {
 	private static String itemNameMainColor = ChatColor.AQUA + "" + ChatColor.ITALIC;
 	
-	public enum CompassType {
+	public enum MainCompassType {
 		DISABLED,
 		TRACKED_TEAMS,
 		OWN_TEAM
@@ -29,12 +38,16 @@ public class ManhuntItems {
 		SPECIFIC_PLAYER
 	};
 	
-	public static CompassType getCompassType(ItemStack compass) {
-		return NbtManhuntUtils.getManhuntEnumValue(CompassType.class, compass, "type");
+	public static boolean isAManhuntCompass(ItemStack compass) {
+		return compass != null && compass.getType() != null && compass.getType() == Material.COMPASS && getCompassType(compass) != null;
 	}
 	
-	public static void setCompassType(ItemStack compass, CompassType type) {
-		NbtManhuntUtils.setManhuntStringValue(compass, "type", type);
+	public static MainCompassType getCompassType(ItemStack compass) {
+		return NbtManhuntUtils.getManhuntEnumValue(MainCompassType.class, compass, "main_type");
+	}
+	
+	public static void setCompassType(ItemStack compass, MainCompassType type) {
+		NbtManhuntUtils.setManhuntStringValue(compass, "main_type", type);
 	}
 	
 	public static CompassTargetChoiceType getCompassTargetChoiceType(ItemStack compass) {
@@ -61,9 +74,9 @@ public class ManhuntItems {
 		NbtManhuntUtils.setManhuntStringValue(compass, "current_target_player_name", playerName);
 	}
 	
-	public static ItemStack createTrackingCompass() {
+	public static ItemStack createTrackingCompass(MainCompassType mainType) {
 		ItemStack is = new ItemStack(Material.COMPASS);
-		setCompassType(is, CompassType.TRACKED_TEAMS);
+		setCompassType(is, mainType);
 		setCompassTargetChoiceType(is, CompassTargetChoiceType.DISABLED);
 		setCurrentTargetValueType(is, CurrentTargetValueType.NEAREST_PLAYER);
 		setCurrentTargetPlayerName(is, null);
@@ -76,13 +89,13 @@ public class ManhuntItems {
 		
 		ManhuntTeam team = TeamManager.getTeamByPlayerNickname(playerName);
 		if(team == null || !team.canUseTracking() || team.getListTrackingOtherTeams().size() == 0
-				|| getCompassType(item) == null || getCompassType(item) == CompassType.DISABLED) {}
+				|| getCompassType(item) == null || getCompassType(item) == MainCompassType.DISABLED) {}
 		else {
 			if(getCurrentTargetValueType(item) == CurrentTargetValueType.NEAREST_PLAYER) {
-				if(getCompassType(item) == CompassType.OWN_TEAM) {
+				if(getCompassType(item) == MainCompassType.OWN_TEAM) {
 					meta.setDisplayName(itemNameMainColor + "Tracking own team");
 				}
-				if(getCompassType(item) == CompassType.TRACKED_TEAMS) {
+				if(getCompassType(item) == MainCompassType.TRACKED_TEAMS) {
 					ManhuntTeam targetTeam = team.getListTrackingOtherTeams().get(0);
 					if(team.getListTrackingOtherTeams().size() == 1) meta.setDisplayName(itemNameMainColor + "Tracking " + FormattedMessages.getTeamColor(targetTeam, ChatColor.ITALIC + "") + targetTeam.getName());
 					else meta.setDisplayName(itemNameMainColor + "Tracking " + team.getListTrackingOtherTeams().size() + " teams");
@@ -101,4 +114,19 @@ public class ManhuntItems {
 		
 		item.setItemMeta(meta);
 	}
+	
+	public static Map<Integer, ItemStack> getCompassIfHasType(Player p, MainCompassType compassType) {
+		Map<Integer, ItemStack> compasses = new HashMap<>();
+		for(Map.Entry<Integer, ? extends ItemStack> entry : p.getInventory().all(Material.COMPASS).entrySet()) {
+			if(getCompassType(entry.getValue()) == compassType) {
+				compasses.put(entry.getKey(), entry.getValue());
+			}
+		}
+		return compasses;
+	}
+	
+//	public static void modifyItemStackToTemplate(ItemStack is, ItemStack template) { // Use setItem instead
+//		is.setItemMeta(template.getItemMeta());
+//		is.setAmount(1);
+//	}
 }
