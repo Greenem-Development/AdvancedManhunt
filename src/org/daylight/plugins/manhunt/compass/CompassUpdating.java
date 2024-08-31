@@ -33,27 +33,49 @@ public class CompassUpdating {
 		return l.getWorld().getEnvironment();
 	}
 	
-	public static void updateBecauseATrackerAppeared(Player tracker) {
-		updateBecauseATrackerAppeared(tracker, false);
+	/**
+	 * A shortcut
+	 */
+	public static void updateFromTrackerRequest(Player tracker) {
+		updateFromTrackerRequest(tracker, false);
 	}
 	
-	public static void updateBecauseATrackerAppeared(Player tracker, boolean compassInHandBypass) {
-		ManhuntTeam ownTeam = TeamManager.getTeamByPlayerNickname(tracker.getName());
-		if(ownTeam == null || !ownTeam.canUseTracking()) return;
-		for(ManhuntTeam team : ownTeam.getListTrackingOtherTeams()) {
-			for(ManhuntPlayer trackedMp : team.getPlayers()) {
-				Player trackedP = trackedMp.getPlayer();
-				if(trackedP != null) {
-					updateOnMovement(trackedP, trackedP.getLocation(), tracker, compassInHandBypass);
-				}
-			}
-		}
+	/**
+	 * Updates the compass of the tracker with no need for the targets to move
+	 * @param tracker The tracker player
+	 * @param compassInHandBypass If should ignore the "no compass in hand in non-overworld" rule
+	 */
+	public static void updateFromTrackerRequest(Player tracker, boolean compassInHandBypass) {
+		ManhuntTeam trackerTeam = TeamManager.getTeamByPlayerNickname(tracker.getName());
+		if(trackerTeam == null || !trackerTeam.canUseTracking()) return;
+		ManhuntPlayer trackerMp = trackerTeam.getPlayer(tracker);
+		if(!trackerMp.isOnline()) return;
+		
+		// Determine new compass state for that tracker and set the compass data
+		setTargetForTracker(trackerTeam, trackerMp.getPlayer(), tracker, compassInHandBypass);
+		
+//		for(ManhuntTeam team : trackerTeam.getListTrackingOtherTeams()) {
+//			for(ManhuntPlayer trackedMp : team.getPlayers()) {
+//				Player trackedP = trackedMp.getPlayer();
+//				if(trackedP != null) {
+//					updateOnMovement(trackedP, trackedP.getLocation(), tracker, compassInHandBypass);
+//				}
+//			}
+//		}
 	}
 	
-	public static void updateOnMovement(Player p, Location newLocation) {
-		updateOnMovement(p, newLocation, null, false);
+	/**
+	 * A shortcut
+	 */
+	public static void updateOnTargetMovement(Player p, Location newLocation) {
+		updateOnTargetMovement(p, newLocation, null, false);
 	}
 	
+	/**
+	 * Save new location of a target in it's ManhuntPlayer object in the corresponding dimension's "last location"
+	 * @param mp The ManhuntPlayer object
+	 * @param newLocation The new actual location of the player
+	 */
 	private static void updateTrackedPlayerLocation(ManhuntPlayer mp, Location newLocation) {
 		Environment env = newLocation.getWorld().getEnvironment();
 		if(env == Environment.NORMAL) {
@@ -65,7 +87,15 @@ public class CompassUpdating {
 		}
 	}
 	
-	public static void updateOnMovement(Player p, Location newLocation, Player bypassForPlayer, boolean compassInHandBypass) {
+	/**
+	 * Update all trackers' compasses when a target has moved
+	 * Please note that even trackers can be targets, this method is just for any movement of any kind of target
+	 * @param p The player who moved / the target
+	 * @param newLocation The new location of the target (can not only be p.getLocation, but also a location from an event)
+	 * @param bypassForPlayer The player the "compass in hand bypass" should be active for
+	 * @param compassInHandBypass If should ignore the "no compass in hand in non-overworld" rule
+	 */
+	public static void updateOnTargetMovement(Player p, Location newLocation, Player bypassForPlayer, boolean compassInHandBypass) {
 		ManhuntTeam trackedTeam = TeamManager.getTeamByPlayerNickname(p.getName());
 		if(trackedTeam == null || !trackedTeam.canBeTracked()) return;
 		
@@ -76,15 +106,20 @@ public class CompassUpdating {
 		for(ManhuntTeam trackerTeam : trackedTeam.getListBeingTrackedByTeams()) {
 			// Iterate over their members
 			for(ManhuntPlayer trackerMp : trackerTeam.getPlayers()) {
-				Player trackerP = trackerMp.getPlayer();
-				if(trackerP == null) continue;
+				if(!trackerMp.isOnline()) continue;
 				
 				// Determine new compass state for that tracker and set the compass data
-				updateCompassForTracker(trackerTeam, trackerP, newLocation, bypassForPlayer, compassInHandBypass);
+				setTargetForTracker(trackerTeam, trackerMp.getPlayer(), bypassForPlayer, compassInHandBypass);
 			}
 		}
 	}
 	
+	/**
+	 * Add the last target's location in the dimension to the list. May add nulls, but they are ignored later
+	 * @param trackerEnv The dimension to search in
+	 * @param targetMp The target ManhuntPlayer to get the info about
+	 * @param resultList The list to add the result to
+	 */
 	private static void addTargetLocationToList(Environment trackerEnv, ManhuntPlayer targetMp, List<Location> resultList) {
 		if(!targetMp.isOnline()) return;
 		
@@ -97,6 +132,12 @@ public class CompassUpdating {
 		}
 	}
 	
+	/**
+	 * Chooses the closest privided location to a specified location
+	 * @param locations A list of possible options
+	 * @param trackerLocation The location the distance is measured from
+	 * @return
+	 */
 	private static Location pickBestLocation(List<Location> locations, Location trackerLocation) {
 		double minDistance = Double.MAX_VALUE;
 		Location bestLocation = null;
@@ -113,7 +154,14 @@ public class CompassUpdating {
 		return bestLocation;
 	}
 	
-	private static void updateCompassForTracker(ManhuntTeam trackerTeam, Player trackerP, Location newLocationn, Player bypassForPlayer, boolean compassInHandBypass) {
+	/**
+	 * Internal/private method, searches for the best compass target for the tracker and sets it
+	 * @param trackerTeam The team of the tracker
+	 * @param trackerP The tracker player
+	 * @param bypassForPlayer The player the "compass in hand bypass" should be active for
+	 * @param compassInHandBypass If should ignore the "no compass in hand in non-overworld" rule
+	 */
+	private static void setTargetForTracker(ManhuntTeam trackerTeam, Player trackerP, Player bypassForPlayer, boolean compassInHandBypass) {
 		// Return if not the overworld and held in hand
 		if(trackerP.getWorld().getEnvironment() != Environment.NORMAL &&
 				!(compassInHandBypass && bypassForPlayer == trackerP) && CompassUtils.hasCompassInHand(trackerP)) return;
@@ -130,6 +178,10 @@ public class CompassUpdating {
 		CompassUtils.setTarget(trackerP, pickBestLocation(locations, trackerP.getLocation()));
 	}
 	
+	/**
+	 * Check the hotbar scroll event and notify the player about the "compass held in not overworld" if needed
+	 * @param e The event of hotbar scrolling
+	 */
 	public static void checkHotbarScrollCompassMessage(PlayerItemHeldEvent e) {
 		ManhuntTeam ownTeam = TeamManager.getTeamByPlayerNickname(e.getPlayer().getName());
 		if(ownTeam == null || !ownTeam.canUseTracking()) return;
@@ -149,26 +201,41 @@ public class CompassUpdating {
 		
 		if(!ManhuntItems.isAManhuntCompass(inv.getItem(e.getNewSlot())) && ManhuntItems.isAManhuntCompass(inv.getItem(e.getPreviousSlot())) && !CompassUtils.hasCompassInHand(e.getPlayer())) {
 			CompassUtils.removeFromWarningList(pName);
-			updateBecauseATrackerAppeared(e.getPlayer(), true);
+			updateFromTrackerRequest(e.getPlayer(), true);
 		}
 	}
 	
+	/**
+	 * The handler of the portal event. Updates the target's position OR the tracker's compass a tick later, even if no one moves, but has been teleported to a different dimention.
+	 * If it was done in the same tick, either dimention or the coords would be the old ones, don't remember exactly.
+	 * @param e The portal event
+	 */
 	public static void onPortalEvent(PlayerPortalEvent e) {
 		ManhuntTeam ownTeam = TeamManager.getTeamByPlayerNickname(e.getPlayer().getName());
 		if(ownTeam == null || (!ownTeam.canUseTracking() && !ownTeam.canBeTracked())) return;
+		
 //		log(e.getPlayer().getLocation() + " " + e.getFrom() + " " + e.getTo());
 		CompassUtils.updatePositionsInATick(e.getPlayer(), ownTeam, true);
 	}
 	
+	/**
+	 * The handler of the death event. Removes the compass if needed
+	 * @param e The death event
+	 */
 	public static void onPlayerDeath(PlayerDeathEvent e) {
 		ManhuntTeam ownTeam = TeamManager.getTeamByPlayerNickname(e.getEntity().getName());
 		if(ownTeam == null || !ownTeam.canUseTracking()) return;
+		
 		for (Iterator<ItemStack> it = e.getDrops().iterator(); it.hasNext(); ) {
 		    ItemStack is = it.next();
-		    if(is.getType() == Material.COMPASS) it.remove();
+		    if(ManhuntItems.isAManhuntCompass(is)) it.remove();
 		}
 	}
 	
+	/**
+	 * The handler of the respawn event. Gives the compass if needed
+	 * @param e The respawn event
+	 */
 	public static void onPlayerRespawn(PlayerRespawnEvent e) {
 		ManhuntTeam ownTeam = TeamManager.getTeamByPlayerNickname(e.getPlayer().getName());
 		if(ownTeam == null || !ownTeam.canUseTracking()) return;

@@ -96,10 +96,10 @@ public class TeamManager {
 		
 		internalRemFromOtherAndNotify(nickname, getTeamByName(teamName), sender);
 		team.addPlayer(new ManhuntPlayer(nickname));
-		if(team.canBeTracked()) CompassUpdating.updateOnMovement(p, p.getLocation());
+		if(team.canBeTracked()) CompassUpdating.updateOnTargetMovement(p, p.getLocation());
 		if(team.canUseTracking()) {
 			CompassUtils.giveCompass(p, MainCompassType.TRACKED_TEAMS);
-			CompassUpdating.updateBecauseATrackerAppeared(p);
+			CompassUpdating.updateFromTrackerRequest(p);
 		}
 		
 		team.sendMessage(FormattedMessages.playerJoinedTeamMessage(nickname), nickname);

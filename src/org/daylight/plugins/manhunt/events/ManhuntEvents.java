@@ -27,7 +27,7 @@ public class ManhuntEvents implements Listener {
 		if(team == null) return;
 		
 		// Compass functionality
-		if(team.canBeTracked()) CompassUpdating.updateOnMovement(e.getPlayer(), e.getTo());
+		if(team.canBeTracked()) CompassUpdating.updateOnTargetMovement(e.getPlayer(), e.getTo());
 		// Frozen players functuonality
 		if(FreezingFeature.isPlayerFrozen(pName)) cancelMovement(e);
 	}

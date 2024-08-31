@@ -54,7 +54,11 @@ public class ManhuntTeam {
 		}
 		this.players = players;
 	}
-
+	
+	public ManhuntPlayer getPlayer(Player p) {
+		return getPlayer(p.getName());
+	}
+	
 	public ManhuntPlayer getPlayer(String nickname) {
 		for(ManhuntPlayer p : players) {
 			if(p.getNickname().equals(nickname)) return p;

@@ -105,8 +105,8 @@ public class CompassUtils {
 	}
 	
 	public static void updatePositions(Player p, ManhuntTeam team, boolean inHandBypass) {
-		if(team.canBeTracked()) CompassUpdating.updateOnMovement(p, p.getLocation());
-		if(team.canUseTracking()) CompassUpdating.updateBecauseATrackerAppeared(p, inHandBypass);
+		if(team.canBeTracked()) CompassUpdating.updateOnTargetMovement(p, p.getLocation());
+		if(team.canUseTracking()) CompassUpdating.updateFromTrackerRequest(p, inHandBypass);
 	}
 	
 	public static void updatePositionsInATick(Player p, ManhuntTeam team, boolean inHandBypass) {
