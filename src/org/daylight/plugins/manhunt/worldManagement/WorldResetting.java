@@ -26,7 +26,7 @@ import org.daylight.plugins.manhunt.util.OsDependent;
 import org.daylight.plugins.manhunt.util.OsDependent.OsType;
 
 public class WorldResetting {
-	@Deprecated(forRemoval = true)
+	@Deprecated()
 	public static void resetWorld(CommandSender sender, String[] args) {
 		if(sender instanceof ConsoleCommandSender || (sender instanceof Player && ((Player) sender).isOp())) {
 			if(!OsDependent.checkSystemSupported(sender, OsType.WINDOWS)) return;

@@ -3,6 +3,8 @@ package org.daylight.plugins.manhunt.teams;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemStack;
+import org.daylight.plugins.manhunt.compass.CompassUtils.CompassConfiguration;
 
 public class ManhuntPlayer {
 	private String nickname;
@@ -10,6 +12,7 @@ public class ManhuntPlayer {
 	private Location lastNetherLocation = null;
 	private Location lastEndLocation = null;
 	private ManhuntTeam ownTeam = null;
+	private CompassConfiguration normalCompassParameters = null;
 	
 	public ManhuntPlayer(String nickname) {
 		super();
@@ -58,5 +61,17 @@ public class ManhuntPlayer {
 	
 	public void setLastEndLocation(Location lastEndLocation) {
 		this.lastEndLocation = lastEndLocation;
+	}
+	
+	public CompassConfiguration getNormalCompassParameters() {
+		return normalCompassParameters;
+	}
+
+	public void setNormalCompassParameters(CompassConfiguration normalCompassParameters) {
+		this.normalCompassParameters = normalCompassParameters;
+	}
+	
+	public boolean shouldBeNormalCompass(ItemStack compass) {
+		return normalCompassParameters != null && normalCompassParameters.matches(compass);
 	}
 }

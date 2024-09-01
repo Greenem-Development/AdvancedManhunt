@@ -3,9 +3,6 @@ package org.daylight.plugins.manhunt.events;
 import static org.daylight.plugins.manhunt.util.SimpleLogger.debug;
 import static org.daylight.plugins.manhunt.util.SimpleLogger.log;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import org.bukkit.Location;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;

@@ -16,12 +16,62 @@ import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.CompassMeta;
 import org.daylight.plugins.manhunt.main.Main;
+import org.daylight.plugins.manhunt.teams.ManhuntPlayer;
 import org.daylight.plugins.manhunt.teams.ManhuntTeam;
+import org.daylight.plugins.manhunt.teams.TeamManager;
 import org.daylight.plugins.manhunt.util.Stash;
 import org.daylight.plugins.manhunt.util.projectspecific.nbt.ManhuntItems;
+import org.daylight.plugins.manhunt.util.projectspecific.nbt.ManhuntItems.CompassTargetChoiceType;
+import org.daylight.plugins.manhunt.util.projectspecific.nbt.ManhuntItems.CurrentCompassTargetValueType;
 import org.daylight.plugins.manhunt.util.projectspecific.nbt.ManhuntItems.MainCompassType;
+import org.daylight.plugins.manhunt.util.projectspecific.nbt.NbtManhuntUtils;
 
 public class CompassUtils {
+	/**
+	 * A class/struct to store a compass configuration
+	 */
+	public static class CompassConfiguration {
+		public MainCompassType mainType;
+		public CurrentCompassTargetValueType currentTargetType;
+		public String possiblyATargetNickname;
+		public CompassTargetChoiceType choiceType;
+		
+		public CompassConfiguration(ItemStack is) {
+			mainType = ManhuntItems.getCompassType(is);
+			currentTargetType = ManhuntItems.getCurrentCompassTargetValueType(is);
+			possiblyATargetNickname = ManhuntItems.getCurrentCompassTargetPlayerName(is);
+			choiceType = ManhuntItems.getCompassTargetChoiceType(is);
+		}
+		
+		public CompassConfiguration(MainCompassType mainType) {
+			this.mainType = mainType;
+		}
+		
+		public CompassConfiguration(MainCompassType mainType, CurrentCompassTargetValueType currentTargetType, String possiblyATargetNickname) {
+			this(mainType);
+			this.currentTargetType = currentTargetType;
+			this.possiblyATargetNickname = possiblyATargetNickname;
+		}
+		
+		public CompassConfiguration(MainCompassType mainType, CurrentCompassTargetValueType currentTargetType, String possiblyATargetNickname, CompassTargetChoiceType choiceType) {
+			this(mainType, currentTargetType, possiblyATargetNickname);
+			this.choiceType = choiceType;
+		}
+		
+		public CompassConfiguration(MainCompassType mainType, CompassTargetChoiceType choiceType) {
+			this(mainType);
+			this.choiceType = choiceType;
+		}
+		
+		public boolean matches(ItemStack is) {
+			if(mainType != null && mainType != ManhuntItems.getCompassType(is)) return false;
+			if(currentTargetType != null && currentTargetType != ManhuntItems.getCurrentCompassTargetValueType(is)) return false;
+			if(possiblyATargetNickname != null && !possiblyATargetNickname.equals(ManhuntItems.getCurrentCompassTargetPlayerName(is))) return false;
+			if(choiceType != null && choiceType != ManhuntItems.getCompassTargetChoiceType(is)) return false;
+			return true;
+		}
+	}
+	
 	private static void setCompassToNotFound(Player p, ItemStack compassItem) { // good
 		CompassMeta meta = (CompassMeta) compassItem.getItemMeta();
 		meta.setLodestoneTracked(true);
@@ -29,37 +79,49 @@ public class CompassUtils {
 		compassItem.setItemMeta(meta);
 	}
 	
-	private static void setUsualCompass(ItemStack compassItem) { // good
-		CompassMeta meta = (CompassMeta) compassItem.getItemMeta();
-		meta.setLodestoneTracked(false);
-		try {
-			meta.setLodestone(null);
-		} catch (IllegalArgumentException e) {} // it is sometimes thrown from a new or maybe just usual compass, no idea how to manage other way
-		compassItem.setItemMeta(meta);
+	private static void setUsualCompass(Player p, int slot, ItemStack compassItem) { // good
+//		CompassMeta meta = (CompassMeta) compassItem.getItemMeta();
+//		meta.setLodestoneTracked(false);
+//		try {
+//			meta.setLodestone(null);
+//		} catch (IllegalArgumentException e) {} // it is sometimes thrown from a new or maybe just usual compass, no idea how to manage other way
+//		compassItem.setItemMeta(meta);
+		p.getInventory().setItem(slot, NbtManhuntUtils.keepOnlyNameAndSection(compassItem));
 	}
 	
-	private static void setLodestoneCompass(ItemStack compassItem, Location target) { // good
+	private static void setLodestoneCompassTarget(ItemStack compassItem, Location target) { // good
 		CompassMeta meta = (CompassMeta) compassItem.getItemMeta();
   		meta.setLodestoneTracked(false);
   		if(target != null) meta.setLodestone(target);
         compassItem.setItemMeta(meta);
 	}
 	
+	private static void setTargetDependingOnCompassType(ManhuntPlayer mp, int slot, ItemStack is, Location target) {
+		if(mp.getPlayer().getWorld().getEnvironment() == Environment.NORMAL && mp != null && mp.shouldBeNormalCompass(is)) {
+//			debug("set usual");
+			setUsualCompass(mp.getPlayer(), slot, is);
+		}
+		else {
+//			debug("set lodestone");
+			setLodestoneCompassTarget(is, target);
+		}
+	}
+	
 	public static void setTarget(Player p, Location target) {
+		ManhuntPlayer mp = TeamManager.getPlayer(p.getName());
+		
 		if(target == null) {
 			for(Entry<Integer, ? extends ItemStack> is : p.getInventory().all(Material.COMPASS).entrySet()) {
 				setCompassToNotFound(p, is.getValue());
+//				setTargetDependingOnCompassType(mp, is.getValue(), target);
 			}
 			return;
 		}
 		
 		if(!p.getLocation().getWorld().equals(target.getWorld())) throw new IllegalArgumentException("Called setTarget with a different dimension argument");
+		
 		for(Entry<Integer, ? extends ItemStack> is : p.getInventory().all(Material.COMPASS).entrySet()) {
-			if(p.getWorld().getEnvironment() == Environment.NORMAL) {
-				setUsualCompass(is.getValue());
-			} else {
-				setLodestoneCompass(is.getValue(), target);
-			}
+			setTargetDependingOnCompassType(mp, is.getKey(), is.getValue(), target);
 		}
 		if(p.getWorld().getEnvironment() == Environment.NORMAL) {
 			p.setCompassTarget(target);
@@ -84,6 +146,17 @@ public class CompassUtils {
 		
 		if(stays == -1) Stash.AddItemStack(p, compassTemplate, getMainCompassTypeInvPos(mainCompasasType));
 		else p.getInventory().setItem(stays, compassTemplate);
+		
+		ManhuntPlayer mp = TeamManager.getPlayer(p);
+		if(mainCompasasType == MainCompassType.TRACKED_TEAMS) mp.setNormalCompassParameters(new CompassConfiguration(compassTemplate));
+		
+		CompassUpdating.updateFromTrackerRequest(p, true);
+	}
+	
+	public static void updateAllCompassesForPlayer(Player p) {
+		for(Map.Entry<Integer, ItemStack> entry : ManhuntItems.getCompassesAll(p).entrySet()) {
+			ManhuntItems.updateCompassName(p.getName(), entry.getValue());
+		}
 	}
 	
 	private static List<String> playersWarnedOfNetherCompass = new ArrayList<>();

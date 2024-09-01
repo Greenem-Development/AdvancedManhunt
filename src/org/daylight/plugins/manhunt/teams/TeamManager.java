@@ -68,6 +68,10 @@ public class TeamManager {
 		return team != null ? team.getName() : null;
 	}
 	
+	public static ManhuntPlayer getPlayer(Player p) {
+		return getPlayer(p.getName());
+	}
+	
 	public static ManhuntPlayer getPlayer(String nickname) {
 		for(ManhuntTeam team : teams) {
 			ManhuntPlayer p = team.getPlayer(nickname);
@@ -99,7 +103,7 @@ public class TeamManager {
 		if(team.canBeTracked()) CompassUpdating.updateOnTargetMovement(p, p.getLocation());
 		if(team.canUseTracking()) {
 			CompassUtils.giveCompass(p, MainCompassType.TRACKED_TEAMS);
-			CompassUpdating.updateFromTrackerRequest(p);
+			CompassUpdating.updateFromTrackerRequest(p); // comment later on stable
 		}
 		
 		team.sendMessage(FormattedMessages.playerJoinedTeamMessage(nickname), nickname);

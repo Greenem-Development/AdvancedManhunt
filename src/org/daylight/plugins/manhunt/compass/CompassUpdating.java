@@ -46,6 +46,8 @@ public class CompassUpdating {
 	 * @param compassInHandBypass If should ignore the "no compass in hand in non-overworld" rule
 	 */
 	public static void updateFromTrackerRequest(Player tracker, boolean compassInHandBypass) {
+		CompassUtils.updateAllCompassesForPlayer(tracker);
+		
 		ManhuntTeam trackerTeam = TeamManager.getTeamByPlayerNickname(tracker.getName());
 		if(trackerTeam == null || !trackerTeam.canUseTracking()) return;
 		ManhuntPlayer trackerMp = trackerTeam.getPlayer(tracker);
@@ -163,8 +165,9 @@ public class CompassUpdating {
 	 */
 	private static void setTargetForTracker(ManhuntTeam trackerTeam, Player trackerP, Player bypassForPlayer, boolean compassInHandBypass) {
 		// Return if not the overworld and held in hand
-		if(trackerP.getWorld().getEnvironment() != Environment.NORMAL &&
-				!(compassInHandBypass && bypassForPlayer == trackerP) && CompassUtils.hasCompassInHand(trackerP)) return;
+		if(trackerP.getWorld().getEnvironment() != Environment.NORMAL && !(compassInHandBypass && bypassForPlayer == trackerP) && CompassUtils.hasCompassInHand(trackerP)) return;
+		
+//		debug("here 1");
 		
 		// Create a list of all possible target locations
 		List<Location> locations = new ArrayList<>();
@@ -173,6 +176,8 @@ public class CompassUpdating {
 				addTargetLocationToList(trackerP.getLocation().getWorld().getEnvironment(), trackingMp, locations);
 			}
 		}
+		
+//		debug("list of " + locations.size());
 		
 		// Pick the best location and set it
 		CompassUtils.setTarget(trackerP, pickBestLocation(locations, trackerP.getLocation()));

@@ -13,6 +13,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.daylight.plugins.manhunt.compass.CompassUtils.CompassConfiguration;
 import org.daylight.plugins.manhunt.teams.ManhuntTeam;
 import org.daylight.plugins.manhunt.teams.TeamManager;
 import org.daylight.plugins.manhunt.util.projectspecific.FormattedMessages;
@@ -33,7 +34,7 @@ public class ManhuntItems {
 		CAN_CHOOSE_TEAM_AND_PLAYER
 	};
 	
-	public enum CurrentTargetValueType {
+	public enum CurrentCompassTargetValueType {
 		NEAREST_PLAYER,
 		SPECIFIC_PLAYER
 	};
@@ -58,15 +59,15 @@ public class ManhuntItems {
 		NbtManhuntUtils.setManhuntStringValue(compass, "target_choice_type", type);
 	}
 	
-	public static CurrentTargetValueType getCurrentTargetValueType(ItemStack compass) {
-		return NbtManhuntUtils.getManhuntEnumValue(CurrentTargetValueType.class, compass, "current_target_value_type");
+	public static CurrentCompassTargetValueType getCurrentCompassTargetValueType(ItemStack compass) {
+		return NbtManhuntUtils.getManhuntEnumValue(CurrentCompassTargetValueType.class, compass, "current_target_value_type");
 	}
 	
-	public static void setCurrentTargetValueType(ItemStack compass, CurrentTargetValueType type) {
+	public static void setCurrentTargetValueType(ItemStack compass, CurrentCompassTargetValueType type) {
 		NbtManhuntUtils.setManhuntStringValue(compass, "current_target_value_type", type);
 	}
 	
-	public static String getCurrentTargetPlayerName(ItemStack compass) {
+	public static String getCurrentCompassTargetPlayerName(ItemStack compass) {
 		return NbtManhuntUtils.getManhuntStringValue(compass, "current_target_player_name");
 	}
 	
@@ -78,20 +79,26 @@ public class ManhuntItems {
 		ItemStack is = new ItemStack(Material.COMPASS);
 		setCompassType(is, mainType);
 		setCompassTargetChoiceType(is, CompassTargetChoiceType.DISABLED);
-		setCurrentTargetValueType(is, CurrentTargetValueType.NEAREST_PLAYER);
+		setCurrentTargetValueType(is, CurrentCompassTargetValueType.NEAREST_PLAYER);
 		setCurrentTargetPlayerName(is, null);
 		return is;	
 	}
 	
+	public static void updateCompassName(Player player, ItemStack item) {
+		updateCompassName(player.getName(), item);
+	}
+	
 	public static void updateCompassName(String playerName, ItemStack item) {
 		ItemMeta meta = item.getItemMeta();
+		String oldName = meta.getDisplayName();
+		
 		meta.setDisplayName("Compass");
 		
 		ManhuntTeam team = TeamManager.getTeamByPlayerNickname(playerName);
 		if(team == null || !team.canUseTracking() || team.getListTrackingOtherTeams().size() == 0
 				|| getCompassType(item) == null || getCompassType(item) == MainCompassType.DISABLED) {}
 		else {
-			if(getCurrentTargetValueType(item) == CurrentTargetValueType.NEAREST_PLAYER) {
+			if(getCurrentCompassTargetValueType(item) == CurrentCompassTargetValueType.NEAREST_PLAYER) {
 				if(getCompassType(item) == MainCompassType.OWN_TEAM) {
 					meta.setDisplayName(itemNameMainColor + "Tracking own team");
 				}
@@ -101,9 +108,9 @@ public class ManhuntItems {
 					else meta.setDisplayName(itemNameMainColor + "Tracking " + team.getListTrackingOtherTeams().size() + " teams");
 				}
 			}
-			else if(getCurrentTargetValueType(item) == CurrentTargetValueType.SPECIFIC_PLAYER) {
-				if(getCurrentTargetPlayerName(item) != null) {
-					String targetPlayerName = getCurrentTargetPlayerName(item);
+			else if(getCurrentCompassTargetValueType(item) == CurrentCompassTargetValueType.SPECIFIC_PLAYER) {
+				if(getCurrentCompassTargetPlayerName(item) != null) {
+					String targetPlayerName = getCurrentCompassTargetPlayerName(item);
 					ManhuntTeam targetTeam = TeamManager.getTeamByPlayerNickname(targetPlayerName);
 					if(targetTeam != null) {
 						meta.setDisplayName(itemNameMainColor + "Tracking " + FormattedMessages.getTeamColor(targetTeam, ChatColor.ITALIC + "") + targetPlayerName);
@@ -112,13 +119,35 @@ public class ManhuntItems {
 			}
 		}
 		
-		item.setItemMeta(meta);
+		if(!oldName.equals(meta.getDisplayName())) item.setItemMeta(meta);
+	}
+	
+	public static Map<Integer, ItemStack> getCompassesAll(Player p) {
+		Map<Integer, ItemStack> compasses = new HashMap<>();
+		for(Map.Entry<Integer, ? extends ItemStack> entry : p.getInventory().all(Material.COMPASS).entrySet()) {
+			compasses.put(entry.getKey(), entry.getValue());
+		}
+		return compasses;
 	}
 	
 	public static Map<Integer, ItemStack> getCompassIfHasType(Player p, MainCompassType compassType) {
 		Map<Integer, ItemStack> compasses = new HashMap<>();
 		for(Map.Entry<Integer, ? extends ItemStack> entry : p.getInventory().all(Material.COMPASS).entrySet()) {
 			if(getCompassType(entry.getValue()) == compassType) {
+				compasses.put(entry.getKey(), entry.getValue());
+			}
+		}
+		return compasses;
+	}
+	
+	public static Map<Integer, ItemStack> getCompassIfHasConfiguration(Player p, ItemStack is) {
+		return getCompassIfHasConfiguration(p, new CompassConfiguration(is));
+	}
+	
+	public static Map<Integer, ItemStack> getCompassIfHasConfiguration(Player p, CompassConfiguration compassConfiguration) {
+		Map<Integer, ItemStack> compasses = new HashMap<>();
+		for(Map.Entry<Integer, ? extends ItemStack> entry : p.getInventory().all(Material.COMPASS).entrySet()) {
+			if(compassConfiguration.matches(entry.getValue())) {
 				compasses.put(entry.getKey(), entry.getValue());
 			}
 		}

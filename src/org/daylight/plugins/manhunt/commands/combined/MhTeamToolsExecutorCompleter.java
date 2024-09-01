@@ -246,7 +246,7 @@ public class MhTeamToolsExecutorCompleter implements TabCompleter {
 		return arguments;
 	}
 	
-	public static void main2(String[] args) {
+	public static void main2(String[] args, int a) {
 //		Pattern p = Pattern.compile("(?:(?:\"(.+)\")|(\\S+))");
 //		System.out.println(p.matcher("\"aaa\"").group(1));
 		
